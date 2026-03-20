@@ -25,6 +25,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 from pymongo import MongoClient
 from collections import defaultdict
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 MONGO_URI = "mongodb+srv://vaibhav1992004_db_user:pXRtog1bLXhEWGAC@cluster0.zy9vvv7.mongodb.net/?retryWrites=true&w=majority"
 
@@ -345,35 +346,41 @@ def analyze_live(features):
 
     packet_counter += 1
 
+@app.get("/live-status")
+def live_status():
+    return {"live": live_session_active}
+
+# # ---------------------------------------------------
+# # Packet Sniffer
+# # ---------------------------------------------------
+
+# print("Initializing Live IDS...")
+
+# sniffer = PacketSniffer(analyze_live)
 
 
-# ---------------------------------------------------
-# Packet Sniffer
-# ---------------------------------------------------
+# # ---------------------------------------------------
+# # Startup Event
+# # ---------------------------------------------------
 
-print("Initializing Live IDS...")
+# @app.on_event("startup")
+# async def start_live_ids():
 
-sniffer = PacketSniffer(analyze_live)
+#     global event_loop
 
+#     event_loop = asyncio.get_running_loop()
 
-# ---------------------------------------------------
-# Startup Event
-# ---------------------------------------------------
+#     print("Starting IDS packet capture...")
+
+#     threading.Thread(
+#         target=sniffer.start,
+#         daemon=True
+#     ).start()
 
 @app.on_event("startup")
-async def start_live_ids():
-
+async def startup_event():
     global event_loop
-
     event_loop = asyncio.get_running_loop()
-
-    print("Starting IDS packet capture...")
-
-    threading.Thread(
-        target=sniffer.start,
-        daemon=True
-    ).start()
-
 
 # ---------------------------------------------------
 # Manual Packet Endpoint
@@ -404,7 +411,7 @@ def analyze_packet(data: PacketFeatures):
         confidence
     )
 
-    return {
+    result = {
     "attack": attack,
     "confidence": confidence,
     "sourceIp": data.sourceIp,
@@ -413,6 +420,18 @@ def analyze_packet(data: PacketFeatures):
     "packetRate": data.packetRate,
     "packetSize": data.packetSize
 }
+    # broadcast to frontend if live session
+    if event_loop and clients:
+      future = asyncio.run_coroutine_threadsafe(
+        broadcast(result),
+        event_loop
+    )
+      try:
+        future.result()
+      except:
+        pass
+
+    return result
 
 
 # ---------------------------------------------------
