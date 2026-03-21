@@ -3,10 +3,15 @@ from live_detection.packet_sniffer import PacketSniffer
 from live_detection.live_predictor import LivePredictor
 import asyncio
 
-app = FastAPI()
+from fastapi import APIRouter
 
-predictor = LivePredictor("C:\\Users\\HP\\OneDrive\\Desktop\\v0-ai-cybersecurity-website-main\\v0-ai-cybersecurity-website-main\\backend\\model\\iot23_ids_model.pkl")
+router = APIRouter()
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "model" / "iot23_ids_model.pkl"
+
+predictor = LivePredictor(str(MODEL_PATH))
 clients = []
 
 
@@ -26,7 +31,7 @@ def analyze(features):
 sniffer = PacketSniffer(analyze)
 
 
-@app.websocket("/ws/live-detection")
+@router.websocket("/ws/live-detection")
 async def websocket_endpoint(websocket: WebSocket):
 
     await websocket.accept()
@@ -39,7 +44,7 @@ async def websocket_endpoint(websocket: WebSocket):
         clients.remove(websocket)
 
 
-@app.on_event("startup")
+@router.on_event("startup")
 def start_sniffer():
     import threading
     threading.Thread(target=sniffer.start, daemon=True).start()

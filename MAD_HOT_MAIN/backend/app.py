@@ -621,7 +621,6 @@ async def live_detection_ws(websocket: WebSocket):
     live_session_active = True
     packets_to_log = 30
     packet_counter = 0
-    
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")

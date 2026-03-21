@@ -60,7 +60,7 @@ loadProfile()
 const loadProfile = async () => {
 try {
 
-const res = await fetch("http://localhost:8000/get-profile")
+const res = await fetch("https://mad-hot-ids.onrender.com/get-profile")
 const data = await res.json()
 
 setName(data.name)
@@ -74,7 +74,7 @@ console.error("Failed to load profile", err)
 const fetchAccountData = async () => {
 try {
 
-const res = await fetch("http://localhost:8000/account-data")
+const res = await fetch("https://mad-hot-ids.onrender.com/account-data")
 const data = await res.json()
 
 setStats(data?.stats || {
@@ -95,7 +95,7 @@ console.error("Failed to load account data", err)
 const saveProfile = async () => {
 try {
 
-await fetch("http://localhost:8000/update-profile", {
+await fetch("https://mad-hot-ids.onrender.com/update-profile", {
 method: "POST",
 headers: { "Content-Type": "application/json" },
 body: JSON.stringify({ name, email })
