@@ -255,7 +255,7 @@ export default function AnalyzerPage() {
 
     e.preventDefault()
 
-    // setIsAnalyzing(true)
+    setIsAnalyzing(true)
 
     try {
 

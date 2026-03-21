@@ -6,7 +6,7 @@ BACKEND_ANALYZE_URL = "https://mad-hot-ids.onrender.com/analyze"
 
 packet_counter = 0
 last_sent = 0
-
+MAX_PACKETS = 50
 
 def send_packet(features):
 
@@ -17,6 +17,9 @@ def send_packet(features):
     # throttle packets
     if now - last_sent < 0.2:
         return
+    
+    if packet_counter >= MAX_PACKETS:
+       return
 
     last_sent = now
 
