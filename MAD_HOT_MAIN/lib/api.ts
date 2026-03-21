@@ -19,7 +19,7 @@ export async function uploadTrafficFile(file: File) {
   const formData = new FormData()
   formData.append("file", file)
 
-  const response = await fetch("http://127.0.0.1:8000/upload", {
+  const response = await fetch("https://mad-hot-ids.onrender.com/upload", {
     method: "POST",
     body: formData
   })
@@ -37,7 +37,7 @@ export async function analyzePacket(
 
   try {
 
-    const response = await fetch("http://127.0.0.1:8000/analyze", {
+    const response = await fetch("https://mad-hot-ids.onrender.com/analyze", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
