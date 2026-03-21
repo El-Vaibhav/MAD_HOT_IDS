@@ -105,7 +105,7 @@ export default function AnalyzerPage() {
     let packetBuffer: any[] = []
     let finished = false
 
-    const ws = new WebSocket("ws://127.0.0.1:8000/ws/live-detection")
+    const ws = new WebSocket("wss://mad-hot-ids.onrender.com/ws/live-detection")
 
     ws.onopen = () => {
       console.log("Connected to Live IDS")
