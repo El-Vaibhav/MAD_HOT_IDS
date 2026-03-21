@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 import random
 import asyncio
-import threading
 import time
+import os
 
 from fastapi import FastAPI, UploadFile, File, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,8 +16,6 @@ from river.tree import HoeffdingTreeClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin
 from collections import Counter
 
-from live_detection.packet_sniffer import PacketSniffer
-from live_detection.live_predictor import LivePredictor
 from db_mongo import save_packet, get_recent_packets
 
 import warnings
@@ -86,10 +84,12 @@ sys.modules["__main__"].SklearnHoeffdingTree = SklearnHoeffdingTree
 # ---------------------------------------------------
 # Load Model
 # ---------------------------------------------------
-
-print("Loading IDS model...")
+print("Current directory:", os.getcwd())
+print("Model exists:", os.path.exists("model/iot23_ids_model.pkl"))
 
 model_package = joblib.load("model/iot23_ids_model.pkl")
+
+print("Loading IDS model...")
 
 model = model_package["model"]
 scaler = model_package["scaler"]
