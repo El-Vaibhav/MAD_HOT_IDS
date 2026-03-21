@@ -190,7 +190,7 @@ export default function DashboardPage() {
 
     try {
 
-      const res = await fetch("http://127.0.0.1:8000/recent-packets")
+      const res = await fetch("https://mad-hot-ids.onrender.com/recent-packets")
 
       const data: Packet[] = await res.json()
 

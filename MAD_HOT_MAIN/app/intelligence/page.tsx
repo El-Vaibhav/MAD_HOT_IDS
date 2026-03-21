@@ -64,7 +64,7 @@ export default function IntelligencePage() {
 
     setLoading(true)
 
-    fetch("http://127.0.0.1:8000/attack-intelligence")
+    fetch("https://mad-hot-ids.onrender.com/attack-intelligence")
       .then((res) => res.json())
       .then((data) => {
 
