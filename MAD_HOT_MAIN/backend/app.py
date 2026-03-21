@@ -250,7 +250,7 @@ async def broadcast(data):
 
 def analyze_live(features):
 
-    global last_sent, packet_counter
+    global last_sent, packet_counter, live_session_active, packets_to_log
 
     # throttle packets
     if time.time() - last_sent < 0.5:
@@ -343,6 +343,32 @@ def analyze_live(features):
 @app.get("/live-status")
 def live_status():
     return {"live": live_session_active}
+
+@app.post("/start-live")
+def start_live():
+
+    global live_session_active, packet_counter, packets_to_log, last_sent
+
+    live_session_active = True
+
+    packet_counter = 0      # RESET COUNTER
+    packets_to_log = 30     # number of packets per session
+    last_sent = 0
+
+    print("Live analysis started")
+
+    return {"status": "started"}
+
+@app.post("/stop-live")
+def stop_live():
+
+    global live_session_active
+
+    live_session_active = False
+
+    print("Live analysis stopped")
+
+    return {"status": "stopped"}
 
 # # ---------------------------------------------------
 # # Packet Sniffer
