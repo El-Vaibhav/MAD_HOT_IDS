@@ -493,6 +493,50 @@ export default function AnalyzerPage() {
                     Click the button below to start capturing and analyzing your network traffic
                   </p>
                 </div>
+                <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4 text-sm text-yellow-300">
+
+                  <p className="font-semibold mb-2">⚠ Live Detection Requires Local Sensor</p>
+
+                  <p>
+                    Live traffic analysis requires a small sensor program to run on your computer.
+                    This sensor captures network packets from your device and sends them to the
+                    MAD-HOT detection system.
+                  </p>
+
+                  <ol className="mt-2 list-decimal pl-5 space-y-1">
+                    <li>
+                      Download the <b>sensor_agent.py</b> file
+                    </li>
+                  </ol>
+
+                  {/* DOWNLOAD BUTTON */}
+                  <div className="mt-3">
+                    <a
+                      href="/sensor_agent.py"
+                      download
+                      className="inline-flex items-center gap-2 rounded-md bg-cyan-500 px-4 py-2 text-black text-sm font-medium hover:bg-cyan-400 transition"
+                    >
+                      ⬇ Download Sensor
+                    </a>
+                  </div>
+
+                  <ol start={2} className="mt-3 list-decimal pl-5 space-y-1">
+                    <li>Open a terminal in the folder where the file is downloaded.</li>
+                    <li>Run the command:</li>
+                  </ol>
+
+                  <pre className="mt-2 rounded bg-black/60 p-2 text-xs text-yellow-200 overflow-x-auto">
+                    pip install scapy requests
+                    &&
+                    python sensor_agent.py
+                  </pre>
+
+                  <p className="mt-2">
+                    After the sensor starts running, return here and click
+                    <b> Start Live Traffic Analysis</b>.
+                  </p>
+
+                </div>
 
                 <Button onClick={startLiveDetection} size="lg" className="w-full gap-2 glow-cyan">
                   <Activity className="h-5 w-5" />
