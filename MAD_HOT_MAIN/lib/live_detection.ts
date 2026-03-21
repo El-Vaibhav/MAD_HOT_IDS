@@ -4,6 +4,13 @@ export function connectLiveDetection(onMessage: (data: any) => void) {
 
   socket.onopen = () => {
     console.log("Connected to Live IDS")
+
+    // send heartbeat every 5 seconds
+    setInterval(() => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send("ping")
+      }
+    }, 5000)
   }
 
   socket.onmessage = (event) => {

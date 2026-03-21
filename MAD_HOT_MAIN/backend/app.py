@@ -616,11 +616,23 @@ async def live_detection_ws(websocket: WebSocket):
 
     clients.append(websocket)
 
-    print("Frontend connected to live IDS")
-
     live_session_active = True
     packets_to_log = 30
     packet_counter = 0
+
+    print("Frontend connected to live IDS")
+
+    try:
+        while True:
+            await websocket.receive_text()  # keep connection alive
+    except:
+        print("WebSocket closed")
+    finally:
+        if websocket in clients:
+            clients.remove(websocket)
+
+        live_session_active = False
+        
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")
