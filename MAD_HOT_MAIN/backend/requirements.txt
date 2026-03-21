@@ -9,3 +9,4 @@ scapy
 scikit_learn
 uvicorn
 python-dotenv
+python-multipart
