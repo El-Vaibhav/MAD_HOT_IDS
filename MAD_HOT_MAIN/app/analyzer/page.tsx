@@ -98,12 +98,17 @@ export default function AnalyzerPage() {
 
   }
 
-  const startLiveDetection = () => {
+  const startLiveDetection = async () => {
 
     setIsAnalyzing(true) // show pipeline animation
 
     let packetBuffer: any[] = []
     let finished = false
+
+    // start backend live session
+    await fetch("https://mad-hot-ids.onrender.com/start-live", {
+      method: "POST"
+    })
 
     const ws = new WebSocket("wss://mad-hot-ids.onrender.com/ws/live-detection")
 

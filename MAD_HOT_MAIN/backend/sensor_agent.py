@@ -43,7 +43,9 @@ def send_packet(features):
 
         if r.status_code == 200:
             packet_counter += 1
-            print(f"Sent packet {packet_counter}")
+            if packet_counter ==1:
+             print("Packet capture and analysis started...")
+             print(f"Sent packet {packet_counter}")
 
     except Exception as e:
         print("Error sending packet:", e)
