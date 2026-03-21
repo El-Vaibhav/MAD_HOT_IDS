@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 "use client"
 import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState } from "react"
 import { useSearchParams } from "next/navigation"
