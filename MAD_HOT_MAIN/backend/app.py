@@ -603,38 +603,25 @@ async def upload_file(file: UploadFile = File(...)):
 
 # ---------------------------------------------------
 # Live Detection WebSocket
-# ---------------------------------------------------
 @app.websocket("/ws/live-detection")
 async def live_detection_ws(websocket: WebSocket):
 
     global live_session_active, packets_to_log, packet_counter
 
+    print("WebSocket request received")
+
     await websocket.accept()
+
+    print("WebSocket accepted")
 
     clients.append(websocket)
 
     print("Frontend connected to live IDS")
 
-    # Start logging packets
     live_session_active = True
     packets_to_log = 30
     packet_counter = 0
-
-    try:
-        while True:
-            await asyncio.sleep(1)
-
-    except:
-        pass
-
-    finally:
-
-        clients.remove(websocket)
-
-        live_session_active = False
-
-        print("Frontend disconnected")
-
+    
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")

@@ -109,7 +109,11 @@ export default function AnalyzerPage() {
 
     ws.onopen = () => {
       console.log("Connected to Live IDS")
+
       setIsLiveRunning(true)
+
+      // start animation ONLY after connection
+      setIsAnalyzing(true)
     }
 
     ws.onmessage = (event) => {
@@ -246,7 +250,7 @@ export default function AnalyzerPage() {
 
     e.preventDefault()
 
-    setIsAnalyzing(true)
+    // setIsAnalyzing(true)
 
     try {
 
