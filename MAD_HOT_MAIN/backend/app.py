@@ -252,12 +252,6 @@ def analyze_live(features):
 
     global last_sent, packet_counter
 
-    if not live_session_active:
-        return
-
-    if packet_counter >= packets_to_log:
-        return
-
     # throttle packets
     if time.time() - last_sent < 0.5:
         return
@@ -606,33 +600,22 @@ async def upload_file(file: UploadFile = File(...)):
 @app.websocket("/ws/live-detection")
 async def live_detection_ws(websocket: WebSocket):
 
-    global live_session_active, packets_to_log, packet_counter
-
-    print("WebSocket request received")
+    print("WebSocket client connected")
 
     await websocket.accept()
-
-    print("WebSocket accepted")
-
     clients.append(websocket)
-
-    live_session_active = True
-    packets_to_log = 30
-    packet_counter = 0
-
-    print("Frontend connected to live IDS")
 
     try:
         while True:
-            await websocket.receive_text()  # keep connection alive
+            await websocket.receive_text()
     except:
-        print("WebSocket closed")
+        pass
     finally:
         if websocket in clients:
             clients.remove(websocket)
 
-        live_session_active = False
-        
+        print("WebSocket client disconnected")
+
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")
