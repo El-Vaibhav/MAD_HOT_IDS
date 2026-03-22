@@ -15,6 +15,9 @@ def send_packet(features):
 
     now = time.time()
 
+    if packet_counter >= 50:
+         return
+
     # throttle packets
     if now - last_sent < 0.2:
         return
