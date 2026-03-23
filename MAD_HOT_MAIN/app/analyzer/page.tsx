@@ -499,39 +499,56 @@ export default function AnalyzerPage() {
 
                   <p>
                     Live traffic analysis requires a small sensor program to run on your computer.
-                    This sensor captures network packets from your device and sends them to the
-                    MAD-HOT detection system.
+                    This sensor captures network packets from your device and securely sends them
+                    to the MAD-HOT detection system for analysis.
                   </p>
 
-                  <ol className="mt-2 list-decimal pl-5 space-y-1">
+                  <ol className="mt-2 list-decimal pl-5 space-y-2">
+
                     <li>
-                      Download the <b>sensor_agent.py</b> file
+                      Download the <b>MAD_HOT_IDS_Sensor.exe</b> program.
                     </li>
+
                   </ol>
 
                   {/* DOWNLOAD BUTTON */}
+
                   <div className="mt-3">
+
                     <a
-                      href="/sensor_agent.py"
+                      href="/MAD_HOT_IDS_Sensor.exe"
                       download
                       className="inline-flex items-center gap-2 rounded-md bg-cyan-500 px-4 py-2 text-black text-sm font-medium hover:bg-cyan-400 transition"
                     >
-                      ⬇ Download Sensor
+                      ⬇ Download Sensor (.exe)
                     </a>
+
                   </div>
 
-                  <ol start={2} className="mt-3 list-decimal pl-5 space-y-1">
-                    <li>Open a terminal in the folder where the file is downloaded.</li>
-                    <li>Run the command:</li>
+                  <ol start={2} className="mt-3 list-decimal pl-5 space-y-2">
+
+                    <li>
+                      Right-click the downloaded file and select <b>Run as Administrator</b>.
+                    </li>
+
+                    <li>
+                      If Windows SmartScreen shows a warning, click:
+                      <br />
+                      <b>More Info → Run Anyway</b>.
+                    </li>
+
                   </ol>
 
-                  <pre className="mt-2 rounded bg-black/60 p-2 text-xs text-yellow-200 overflow-x-auto">
-                    pip install scapy requests
-                    &&
-                    python sensor_agent.py
-                  </pre>
+                  <div className="mt-3 rounded-md bg-black/40 p-3 text-xs text-yellow-200">
 
-                  <p className="mt-2">
+                    ✔ This program is completely safe and open-source.<br />
+                    ✔ It only reads network packets from your device.<br />
+                    ✔ No personal data or files are accessed.<br />
+                    ✔ It simply sends packet metadata to the MAD-HOT detection server for analysis.
+
+                  </div>
+
+                  <p className="mt-3">
                     After the sensor starts running, return here and click
                     <b> Start Live Traffic Analysis</b>.
                   </p>
