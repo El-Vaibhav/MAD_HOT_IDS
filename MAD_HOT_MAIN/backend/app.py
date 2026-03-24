@@ -656,24 +656,32 @@ async def attack_intelligence():
     # -----------------------------
     # Attack counts + regions
     # -----------------------------
+    recent = []
+    seen = set()
+
     for p in packets:
 
-        label = p.get("prediction", "Normal")
-        country = p.get("country", "Unknown")
+      label = p.get("prediction", "Normal")
+      country = p.get("country", "Unknown")
+      source = p.get("sourceIp", "unknown")
 
-        if label != "Normal":
+      if label != "Normal":
 
-            attack_counts[label] = attack_counts.get(label, 0) + 1
-            regions[country] = regions.get(country, 0) + 1
+        attack_counts[label] = attack_counts.get(label, 0) + 1
+        regions[country] = regions.get(country, 0) + 1
+
+        key = f"{source}-{label}"
+
+        if key not in seen:
+            seen.add(key)
 
             recent.append({
                 "id": len(recent) + 1,
                 "type": label,
-                "source": p.get("sourceIp", "unknown"),
+                "source": source,
                 "severity": "high",
                 "time": p.get("timestamp", "now")
             })
-
     # -----------------------------
     # Attack type colors
     # -----------------------------
@@ -776,9 +784,10 @@ async def attack_intelligence():
 @app.get("/account-data")
 def account_data():
 
-    packets = list(collection.find().sort("timestamp", -1).limit(1000))
+    total_analyses = collection.count_documents({})
 
-    total_analyses = len(packets)
+    packets = list(collection.find().sort("timestamp", -1).limit(100))
+    
 
     attacks_detected = sum(
         1 for p in packets

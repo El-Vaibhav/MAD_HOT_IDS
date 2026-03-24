@@ -194,11 +194,32 @@ export default function DashboardPage() {
 
       const data: Packet[] = await res.json()
 
-      setPackets(data)
+      // remove duplicate packets (same src, dest, protocol, timestamp)
+
+      const uniqueMap = new Map<string, Packet>()
+
+      data.forEach((p) => {
+
+        const key = `${p.sourceIp}-${p.destIp}-${p.protocol}`
+
+        // keep the latest packet of the flow
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, p)
+        } else {
+          const existing = uniqueMap.get(key)!
+
+          if (new Date(p.timestamp) > new Date(existing.timestamp)) {
+            uniqueMap.set(key, p)
+          }
+        }
+
+      })
+
+      const uniquePackets = Array.from(uniqueMap.values())
 
       /* ---------- ALERTS ---------- */
 
-      const newAlerts = data
+      const newAlerts = uniquePackets
         .filter(p => p.prediction !== "Benign")
         .slice(0, 10)
         .map((p, i) => ({
@@ -251,7 +272,7 @@ export default function DashboardPage() {
 
       /* ---------- CONNECTIONS ---------- */
 
-      const conns: Connection[] = data.slice(0, 15).map((p, i) => {
+      const conns: Connection[] = uniquePackets.slice(0, 15).map((p, i) => {
 
         let status: Connection["status"] = "active"
 
@@ -284,21 +305,21 @@ export default function DashboardPage() {
 
       /* ---------- STATS ---------- */
 
-      const threats = data.filter(p => p.prediction !== "Benign").length
+      const threats = uniquePackets.filter(p => p.prediction !== "Benign").length
 
-      const threatRatio = threats / (data.length || 1)
+      const threatRatio = threats / (uniquePackets.length || 1)
 
       const avgConfidence =
-        data.reduce((sum, p) => sum + p.confidence, 0) / (data.length || 1)
+        uniquePackets.reduce((sum, p) => sum + p.confidence, 0) / (uniquePackets.length || 1)
 
       const avgPacketRate =
-        data.reduce((sum, p) => sum + p.packetRate, 0) / (data.length || 1)
+        uniquePackets.reduce((sum, p) => sum + p.packetRate, 0) / (uniquePackets.length || 1)
 
       const totalBytes =
-        data.reduce((sum, p) => sum + p.packetSize, 0)
+        uniquePackets.reduce((sum, p) => sum + p.packetSize, 0)
 
       const packetsPerSecond =
-        Math.round(avgPacketRate * data.length) +
+        Math.round(avgPacketRate * uniquePackets.length) +
         Math.floor(Math.random() * 45)
 
       const txPackets = Math.round(packetsPerSecond * 0.45)
@@ -330,11 +351,11 @@ export default function DashboardPage() {
       risk = Math.min(100, Math.round(risk))
 
       setStats({
-        totalPackets: data.length,
+        totalPackets: uniquePackets.length,
         packetsPerSecond,
         txPackets,
         rxPackets,
-        activeConnections: new Set(data.map(p => p.sourceIp)).size,
+        activeConnections: new Set(uniquePackets.map(p => p.sourceIp)).size,
         threatsBlocked: threats,
         bandwidth: bandwidthMB,
         systemRisk: risk
@@ -345,7 +366,7 @@ export default function DashboardPage() {
 
       const counts: any = {}
 
-      data.forEach(p => {
+      uniquePackets.forEach(p => {
 
         const proto = p.protocol.toUpperCase()
 
@@ -353,7 +374,7 @@ export default function DashboardPage() {
 
       })
 
-      const total = data.length
+      const total = uniquePackets.length
 
       const protoChart = Object.keys(counts).map(proto => ({
 
@@ -370,10 +391,10 @@ export default function DashboardPage() {
 
       setPacketData(prev => {
 
-        if (!data.length) return prev
+        if (!uniquePackets.length) return prev
 
         const avgSize =
-          data.reduce((sum, p) => sum + p.packetSize, 0) / data.length
+          uniquePackets.reduce((sum, p) => sum + p.packetSize, 0) / uniquePackets.length
 
         const newPoint = {
 
@@ -425,7 +446,7 @@ export default function DashboardPage() {
 
       const sourceCounts: Record<string, number> = {}
 
-      data.forEach(p => {
+      uniquePackets.forEach(p => {
         if (p.prediction === "Benign") return
         sourceCounts[p.sourceIp] = (sourceCounts[p.sourceIp] || 0) + 1
       })
@@ -458,9 +479,9 @@ export default function DashboardPage() {
 
       setAttackTimelineData(prev => {
 
-        if (!data.length) return prev
+        if (!uniquePackets.length) return prev
 
-        const attacks = data.filter(p => p.prediction !== "Benign").length
+        const attacks = uniquePackets.filter(p => p.prediction !== "Benign").length
 
         // base traffic
         let packets = 2000 + Math.random() * 1000
