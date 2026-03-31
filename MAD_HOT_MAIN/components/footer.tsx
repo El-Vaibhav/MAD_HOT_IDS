@@ -92,15 +92,50 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t border-border/50 pt-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-sm text-muted-foreground">
-              {new Date().getFullYear()} MAD-HOT IDS. All rights reserved.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Mixed Rate Attack Detection using Hoeffding Optimized Trees
-            </p>
-          </div>
-        </div>
+  <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+
+    {/* Left */}
+    <p className="text-sm text-muted-foreground">
+      © {new Date().getFullYear()} MAD-HOT IDS. All rights reserved.
+    </p>
+
+    {/* Center */}
+    <p className="text-sm text-muted-foreground text-center">
+      Mixed Rate Attack Detection using Hoeffding Optimized Trees
+    </p>
+
+    {/* Right (YOUR PART) */}
+    <div className="flex flex-col items-center text-sm text-muted-foreground">
+      <p>
+        Developed by{" "}
+        <span className="font-medium text-foreground">
+          Vaibhav
+        </span>
+      </p>
+
+      <div className="flex gap-3 mt-1">
+        <a
+          href="https://elvaibhavportfolionew.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-primary transition"
+        >
+          Portfolio
+        </a>
+
+        <a
+          href="https://www.linkedin.com/in/vaibhav-sodhi-8b0207257"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-primary transition"
+        >
+          LinkedIn
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
       </div>
     </footer>
   )
