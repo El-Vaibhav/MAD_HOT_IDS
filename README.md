@@ -34,6 +34,7 @@ Flask (Python)
 
 REST APIs
 
+
 ##🔹 Machine Learning
 Hoeffding Trees/ Decision Tree / Random Forest / SVM (configurable)
 
@@ -126,20 +127,8 @@ Historical trends
 
 🤖 Deep Learning-based IDS
 
-🤝 Contributing
 
-Contributions are welcome!
-
-# Fork the repo
-# Create a new branch
-git checkout -b feature-name
-
-# Commit changes
-git commit -m "Added new feature"
-
-# Push
-git push origin feature-name
-📜 License
+# 📜 License
 
 This project is licensed under the MIT License.
 
