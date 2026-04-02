@@ -86,19 +86,19 @@ Start frontend
 
 Upload or simulate network data
 
-View:
+## View:
 Detected anomalies
 
 Attack intelligence
 
-Scan analytics
+## Scan analytics
+
 🧠 Core Functionalities
 
-🔹 Intrusion Detection
+## 🔹 Intrusion Detection
 
 Detects abnormal patterns in network traffic
 Uses trained ML models for classification
-
 
 
 ## 🔹 Attack Intelligence
