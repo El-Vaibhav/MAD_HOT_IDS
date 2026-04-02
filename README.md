@@ -5,28 +5,38 @@ MAD_HOT_IDS is a full-stack Intrusion Detection System (IDS) that analyzes netwo
 
 # 📌 Features
 🔍 Real-time Intrusion Detection
+
 🤖 Machine Learning-based Anomaly Detection
+
 📊 Interactive Dashboard & Visualizations
+
 🧠 Attack Intelligence Module (deduplicated insights)
+
 📁 Scan History & Analytics Tracking
+
 ⚡ Fast API Backend (Flask-based)
+
 🎨 Modern UI with TailwindCSS
+
 🧩 Modular & Scalable Architecture
 
 # 🛠️ Tech Stack
 ## 🔹 Frontend
 
 React.js
+
 TailwindCSS
+
 Framer Motion
 
 ## 🔹 Backend
 Flask (Python)
+
 REST APIs
 
 ##🔹 Machine Learning
 Hoeffding Trees/ Decision Tree / Random Forest / SVM (configurable)
-Feature Engineering (FFT, Wavelet Transform, etc.)
+
 KDD Dataset-based training
 
 # 📂 Project Structure
@@ -50,46 +60,72 @@ MAD_HOT_IDS/
 # ⚙️ Installation & Setup
 ## 1️⃣ Clone the Repository
 git clone https://github.com/El-Vaibhav/MAD_HOT_IDS.git
+
 cd MAD_HOT_IDS
 
 ## 2️⃣ Backend Setup
 cd backend
+
 pip install -r requirements.txt
+
 python app.py
 
 ## 3️⃣ Frontend Setup
 cd frontend
+
 npm install
+
 npm run dev
 
 ## 🚀 Usage
+
 Start backend server
+
 Start frontend
+
 Upload or simulate network data
+
 View:
 Detected anomalies
+
 Attack intelligence
+
 Scan analytics
 🧠 Core Functionalities
+
 🔹 Intrusion Detection
+
 Detects abnormal patterns in network traffic
 Uses trained ML models for classification
 
 
+
 ## 🔹 Attack Intelligence
+
 Removes duplicate entries
+
 Provides clean and meaningful threat insights
 
 ## 🔹 Dashboard
+
 Total scans
+
 Detected attacks
+
 Historical trends
+
 📈 Future Improvements
+
 🔄 Real-time packet capture integration
+
 🌐 Deployment on cloud (AWS/GCP)
+
 🔐 Enhanced cybersecurity rules engine
+
 📊 Advanced visualization (graphs + heatmaps)
+
 🤖 Deep Learning-based IDS
+
 🤝 Contributing
 
 Contributions are welcome!
