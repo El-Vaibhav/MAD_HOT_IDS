@@ -506,6 +506,10 @@ export default function AnalyzerPage() {
                   <ol className="mt-2 list-decimal pl-5 space-y-2">
 
                     <li>
+                      Install Npcap (https://npcap.com/) to allow packet capturing on Windows.
+                    </li>
+                    
+                    <li>
                       Download the <b>MAD_HOT_IDS_Sensor.exe</b> program.
                     </li>
 
