@@ -1,10 +1,16 @@
 from pymongo import MongoClient
 from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-# PUT YOUR REAL CONNECTION STRING HERE
-client = MongoClient(
-    "mongodb+srv://vaibhav1992004_db_user:pXRtog1bLXhEWGAC@cluster0.zy9vvv7.mongodb.net/?retryWrites=true&w=majority"
-)
+load_dotenv()
+
+mongo_uri = os.getenv("MONGO_URI")
+
+if not mongo_uri:
+    raise ValueError("MONGO_URI environment variable is required")
+
+client = MongoClient(mongo_uri)
 
 db = client["ids_database"]
 packets_collection = db["packets"]

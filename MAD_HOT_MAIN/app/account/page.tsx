@@ -31,6 +31,7 @@ AlertTriangle,
 CheckCircle2,
 ExternalLink,
 } from "lucide-react"
+import { ENDPOINTS } from "@/lib/config"
 
 export default function AccountPage() {
 
@@ -60,7 +61,8 @@ loadProfile()
 const loadProfile = async () => {
 try {
 
-const res = await fetch("https://mad-hot-ids.onrender.com/get-profile")
+const res = await fetch(ENDPOINTS.getProfile)
+if (!res.ok) throw new Error(`Profile API failed: ${res.status}`)
 const data = await res.json()
 
 setName(data.name)
@@ -74,7 +76,8 @@ console.error("Failed to load profile", err)
 const fetchAccountData = async () => {
 try {
 
-const res = await fetch("https://mad-hot-ids.onrender.com/account-data")
+const res = await fetch(ENDPOINTS.accountData)
+if (!res.ok) throw new Error(`Account API failed: ${res.status}`)
 const data = await res.json()
 
 setStats(data?.stats || {
@@ -95,7 +98,7 @@ console.error("Failed to load account data", err)
 const saveProfile = async () => {
 try {
 
-await fetch("https://mad-hot-ids.onrender.com/update-profile", {
+await fetch(ENDPOINTS.updateProfile, {
 method: "POST",
 headers: { "Content-Type": "application/json" },
 body: JSON.stringify({ name, email })

@@ -41,6 +41,7 @@ import {
   AreaChart,
   Area,
 } from "recharts"
+import { ENDPOINTS } from "@/lib/config"
 
 
 const pieColors = ["#ef4444", "#f97316", "#22c55e", "#8b5cf6"]
@@ -53,6 +54,7 @@ export default function IntelligencePage() {
   const [trendData, setTrendData] = useState<any[]>([])
   const [recentThreats, setRecentThreats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const [stats, setStats] = useState({
     total_attacks: 0,
@@ -64,8 +66,13 @@ export default function IntelligencePage() {
 
     setLoading(true)
 
-    fetch("https://mad-hot-ids.onrender.com/attack-intelligence")
-      .then((res) => res.json())
+    fetch(ENDPOINTS.attackIntelligence)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load intelligence data: ${res.status}`)
+        }
+        return res.json()
+      })
       .then((data) => {
 
         setAttackTypeData(data.attack_types || [])
@@ -83,6 +90,11 @@ export default function IntelligencePage() {
 
         setTimeout(() => setLoading(false), 200) // smooth delay
       })
+      .catch((err) => {
+        console.error(err)
+        setError("Unable to load intelligence data. Please check backend connectivity.")
+        setLoading(false)
+      })
   }, [])
 
   if (loading) {
@@ -90,6 +102,19 @@ export default function IntelligencePage() {
       <main className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">
           Loading Intelligence Data...
+        </div>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-medium text-destructive">{error}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Endpoint: {ENDPOINTS.attackIntelligence}
+          </p>
         </div>
       </main>
     )

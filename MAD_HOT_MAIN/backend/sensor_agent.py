@@ -1,8 +1,15 @@
 import requests
 import time
+import os
+from dotenv import load_dotenv
 from live_detection.packet_sniffer import PacketSniffer
 
-BACKEND_ANALYZE_URL = "https://mad-hot-ids.onrender.com/analyze"
+load_dotenv()
+
+BACKEND_ANALYZE_URL = os.getenv("BACKEND_ANALYZE_URL")
+
+if not BACKEND_ANALYZE_URL:
+    raise ValueError("BACKEND_ANALYZE_URL environment variable is required")
 
 packet_counter = 0
 last_sent = 0
