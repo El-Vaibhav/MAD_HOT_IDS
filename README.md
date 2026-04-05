@@ -3,6 +3,11 @@ Intelligent Intrusion Detection System with Visualization & Analytics
 
 MAD_HOT_IDS is a full-stack Intrusion Detection System (IDS) that analyzes network traffic, detects anomalies using machine learning, and provides interactive visual insights through a modern dashboard.
 
+<img width="1917" height="915" alt="image" src="https://github.com/user-attachments/assets/4b3d0477-a5fa-4e76-b2fc-9d95581beaef" />
+
+
+
+
 # 📌 Features
 🔍 Real-time Intrusion Detection
 
