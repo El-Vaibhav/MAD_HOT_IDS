@@ -73,7 +73,6 @@ export default function IntelligencePage() {
         }
         return res.json()
       })
-      .then((res) => res.json())
       .then((data) => {
 
         setAttackTypeData(data.attack_types || [])
