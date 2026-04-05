@@ -1,4 +1,5 @@
 // lib/api.ts
+import { ENDPOINTS } from "./config"
 
 export interface PacketFeatures {
   sourceIp: string
@@ -19,7 +20,7 @@ export async function uploadTrafficFile(file: File) {
   const formData = new FormData()
   formData.append("file", file)
 
-  const response = await fetch("https://mad-hot-ids.onrender.com/upload", {
+  const response = await fetch(ENDPOINTS.upload, {
     method: "POST",
     body: formData
   })
@@ -37,7 +38,7 @@ export async function analyzePacket(
 
   try {
 
-    const response = await fetch("https://mad-hot-ids.onrender.com/analyze", {
+    const response = await fetch(ENDPOINTS.analyze, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
