@@ -62,6 +62,7 @@ const loadProfile = async () => {
 try {
 
 const res = await fetch(ENDPOINTS.getProfile)
+if (!res.ok) throw new Error(`Profile API failed: ${res.status}`)
 const data = await res.json()
 
 setName(data.name)
@@ -76,6 +77,7 @@ const fetchAccountData = async () => {
 try {
 
 const res = await fetch(ENDPOINTS.accountData)
+if (!res.ok) throw new Error(`Account API failed: ${res.status}`)
 const data = await res.json()
 
 setStats(data?.stats || {

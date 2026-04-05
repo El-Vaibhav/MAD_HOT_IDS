@@ -192,6 +192,9 @@ export default function DashboardPage() {
     try {
 
       const res = await fetch(ENDPOINTS.recentPackets)
+      if (!res.ok) {
+        throw new Error(`Recent packets API failed: ${res.status}`)
+      }
 
       const data: Packet[] = await res.json()
 
