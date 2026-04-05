@@ -1,6 +1,8 @@
+import { ENDPOINTS } from "./config"
+
 export function connectLiveDetection(onMessage: (data: any) => void) {
 
-  const socket = new WebSocket("wss://mad-hot-ids.onrender.com/ws/live-detection")
+  const socket = new WebSocket(ENDPOINTS.liveDetectionWs)
 
   socket.onopen = () => {
     console.log("Connected to Live IDS")

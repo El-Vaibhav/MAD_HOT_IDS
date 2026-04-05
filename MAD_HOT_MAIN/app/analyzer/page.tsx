@@ -23,6 +23,7 @@ import {
   CheckCircle2,
 } from "lucide-react"
 import { analyzePacket, uploadTrafficFile } from "@/lib/api"
+import { ENDPOINTS } from "@/lib/config"
 
 const pipelineSteps = [
   { icon: Wifi, label: "Capturing Network Packets", description: "Collecting live traffic data" },
@@ -106,11 +107,11 @@ export default function AnalyzerPage() {
     let finished = false
 
     // start backend live session
-    await fetch("https://mad-hot-ids.onrender.com/start-live", {
+    await fetch(ENDPOINTS.startLive, {
       method: "POST"
     })
 
-    const ws = new WebSocket("wss://mad-hot-ids.onrender.com/ws/live-detection")
+    const ws = new WebSocket(ENDPOINTS.liveDetectionWs)
 
     ws.onopen = () => {
       console.log("Connected to Live IDS")

@@ -52,6 +52,7 @@ import {
   BarChart,
   Bar,
 } from "recharts"
+import { ENDPOINTS } from "@/lib/config"
 
 interface Packet {
 
@@ -190,7 +191,7 @@ export default function DashboardPage() {
 
     try {
 
-      const res = await fetch("https://mad-hot-ids.onrender.com/recent-packets")
+      const res = await fetch(ENDPOINTS.recentPackets)
 
       const data: Packet[] = await res.json()
 

@@ -7,6 +7,7 @@ import random
 import asyncio
 import time
 import os
+from dotenv import load_dotenv
 
 from fastapi import FastAPI, UploadFile, File, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,7 +26,13 @@ from collections import defaultdict
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 
-MONGO_URI = "mongodb+srv://vaibhav1992004_db_user:pXRtog1bLXhEWGAC@cluster0.zy9vvv7.mongodb.net/?retryWrites=true&w=majority"
+load_dotenv()
+
+MONGO_URI = os.getenv("MONGO_URI")
+MODEL_PATH = os.getenv("MODEL_PATH", "model/iot23_ids_model.pkl")
+
+if not MONGO_URI:
+    raise ValueError("MONGO_URI environment variable is required")
 
 client = MongoClient(MONGO_URI)
 
@@ -85,9 +92,9 @@ sys.modules["__main__"].SklearnHoeffdingTree = SklearnHoeffdingTree
 # Load Model
 # ---------------------------------------------------
 print("Current directory:", os.getcwd())
-print("Model exists:", os.path.exists("model/iot23_ids_model.pkl"))
+print("Model exists:", os.path.exists(MODEL_PATH))
 
-model_package = joblib.load("model/iot23_ids_model.pkl")
+model_package = joblib.load(MODEL_PATH)
 
 print("Loading IDS model...")
 

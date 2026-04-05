@@ -13,6 +13,11 @@ This repository is linked to a [v0](https://v0.app) project. You can continue de
 First, run the development server:
 
 ```bash
+# Configure environment variables first:
+# cp .env.example .env.local
+# (backend) cp backend/.env.example backend/.env
+# then update values as needed
+
 npm run dev
 # or
 yarn dev
