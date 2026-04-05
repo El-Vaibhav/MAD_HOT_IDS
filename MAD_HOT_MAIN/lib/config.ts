@@ -3,6 +3,15 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_UR
 
 const apiAsWs = API_BASE_URL.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://")
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || apiAsWs
+const runtimeApiBase =
+  typeof window !== "undefined" ? window.location.origin : "http://localhost:8000"
+const runtimeWsBase =
+  typeof window !== "undefined"
+    ? `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`
+    : "ws://localhost:8000"
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || runtimeApiBase
+const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || runtimeWsBase
 
 export const ENDPOINTS = {
   analyze: `${API_BASE_URL}/analyze`,
