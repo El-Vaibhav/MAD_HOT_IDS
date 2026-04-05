@@ -1,8 +1,9 @@
 import requests
 import time
+import os
 from scapy.all import sniff, IP, TCP, UDP, ICMP
 
-BACKEND_ANALYZE_URL = "https://mad-hot-ids.onrender.com/analyze"
+BACKEND_ANALYZE_URL = os.getenv("BACKEND_ANALYZE_URL", "https://mad-hot-ids.onrender.com/analyze")
 
 packet_counter = 0
 last_sent = 0

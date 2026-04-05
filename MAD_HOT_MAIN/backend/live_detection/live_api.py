@@ -2,6 +2,7 @@ from fastapi import FastAPI, WebSocket
 from live_detection.packet_sniffer import PacketSniffer
 from live_detection.live_predictor import LivePredictor
 import asyncio
+import os
 
 from fastapi import APIRouter
 
@@ -9,7 +10,7 @@ router = APIRouter()
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "model" / "iot23_ids_model.pkl"
+MODEL_PATH = os.getenv("MODEL_PATH", str(BASE_DIR / "model" / "iot23_ids_model.pkl"))
 
 predictor = LivePredictor(str(MODEL_PATH))
 clients = []

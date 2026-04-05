@@ -41,6 +41,7 @@ import {
   AreaChart,
   Area,
 } from "recharts"
+import { ENDPOINTS } from "@/lib/config"
 
 
 const pieColors = ["#ef4444", "#f97316", "#22c55e", "#8b5cf6"]
@@ -64,7 +65,7 @@ export default function IntelligencePage() {
 
     setLoading(true)
 
-    fetch("https://mad-hot-ids.onrender.com/attack-intelligence")
+    fetch(ENDPOINTS.attackIntelligence)
       .then((res) => res.json())
       .then((data) => {
 
