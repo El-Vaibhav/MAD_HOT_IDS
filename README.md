@@ -7,7 +7,7 @@ MAD_HOT_IDS is a full-stack Intrusion Detection System (IDS) that analyzes netwo
 
 <br><br>
 
-<img width="1268" height="821" alt="image" src="https://github.com/user-attachments/assets/d038a543-d56d-4245-a416-e9ccb5784c73" />
+<img width="1647" height="896" alt="image" src="https://github.com/user-attachments/assets/1bb119ca-e262-4409-86e2-de39a7be5730" />
 
 <br><br>
 
