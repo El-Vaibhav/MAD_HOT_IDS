@@ -60,7 +60,9 @@ export default function ResultsPage() {
 
   const searchParams = useSearchParams()
 
-  const attackType = searchParams.get("attack") || "Normal Traffic"
+  const attackType = decodeURIComponent(
+    searchParams.get("attack") || "Normal Traffic"
+  )
   const confidenceParam = Number(searchParams.get("confidence") || 0)
 
   const [confidence] = useState(confidenceParam * 100)
@@ -143,13 +145,16 @@ export default function ResultsPage() {
      DETECTION REASONS
   --------------------------------*/
 
-  const detectionReasons = [
-    "Abnormal packet burst detected",
-    "High TCP SYN frequency detected",
-    "Network entropy anomaly detected",
-    "Traffic pattern matches malicious behavior",
-    "Source IP flagged in threat intelligence database",
-  ]
+const detectionReasons = [
+  "Significant anomaly detected in packet transmission rate, indicating sudden burst behavior that deviates from baseline traffic patterns typically observed in benign network communication. This suggests possible flooding or automated traffic generation.",
+
+  "Unusually high frequency of TCP SYN packets observed without corresponding ACK responses, which is a strong indicator of SYN flood attacks or reconnaissance activity attempting to exhaust server resources.",
+
+  "Elevated network entropy detected in packet distribution, implying irregular and unpredictable traffic patterns often associated with encrypted malicious communication or polymorphic attack behavior.",
+
+  "Traffic flow characteristics strongly match known malicious signatures identified during model training, including abnormal inter-arrival times, inconsistent packet sizes, and irregular session durations.",
+
+]
 
   const attackDescriptions = {
     Benign: {
@@ -225,19 +230,27 @@ export default function ResultsPage() {
      EXPORT REPORT
   --------------------------------*/
 
+  const sanitize = (text: string) =>
+    text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+
   const handleExportReport = async () => {
 
     setIsExporting(true)
 
     try {
       await exportAnalysisReportToPDF({
-        attackType,
+        attackType: sanitize(attackType),
         confidence,
         riskLevel,
         status: isAttack ? "ATTACK" : "NORMAL",
-        reasons: isAttack ? detectionReasons : ["Normal traffic patterns observed"],
-        explanation: attack.description,
-        characteristics: attack.characteristics
+        reasons: isAttack
+          ? detectionReasons.map((r) => sanitize(r))
+          : ["Normal traffic patterns observed"],
+        explanation: sanitize(attack.description),
+        characteristics: attack.characteristics.map((c) => sanitize(c)),
       })
     } finally {
       setIsExporting(false)

@@ -81,10 +81,10 @@ export async function exportAnalysisReportToPDF({
 
   if (status === "ATTACK") {
     pdf.setTextColor(...red)
-    pdf.text("⚠ ATTACK DETECTED", 15, y)
+    pdf.text("ATTACK DETECTED", 15, y)
   } else {
     pdf.setTextColor(...green)
-    pdf.text("✔ NORMAL TRAFFIC", 15, y)
+    pdf.text("NORMAL TRAFFIC", 15, y)
   }
 
   y += 12
@@ -167,7 +167,7 @@ export async function exportAnalysisReportToPDF({
   pdf.setTextColor(...white)
 
   reasons.forEach((r) => {
-    pdf.text(`• ${r}`, 18, y)
+    pdf.text(`- ${r}`, 18, y)
     y += 6
   })
 
@@ -209,7 +209,7 @@ export async function exportAnalysisReportToPDF({
   pdf.setTextColor(...white)
 
   characteristics.forEach((c) => {
-    pdf.text(`• ${c}`, 18, y)
+    pdf.text(`- ${c}`, 18, y)
     y += 6
   })
 
