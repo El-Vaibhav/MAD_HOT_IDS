@@ -68,7 +68,7 @@ export default function AnalyzerPage() {
 
   const startAnalysis = (result?: any) => {
 
-    setCurrentStep(0)
+    setCurrentStep(0) // start from beginning
 
     const interval = setInterval(() => {
 
@@ -79,13 +79,11 @@ export default function AnalyzerPage() {
           clearInterval(interval)
 
           setTimeout(() => {
-
             router.push(
               `/results?attack=${result?.attack || ""}&confidence=${result?.confidence || 0}&viz=${encodeURIComponent(
                 JSON.stringify(result?.visualization || {})
               )}`
             )
-
           }, 1000)
 
           return prev
@@ -95,10 +93,9 @@ export default function AnalyzerPage() {
 
       })
 
-    }, 1500)
+    }, 1200) // speed of animation
 
   }
-
   const startLiveDetection = async () => {
 
     setIsAnalyzing(true) // show pipeline animation
@@ -121,7 +118,6 @@ export default function AnalyzerPage() {
       // start animation ONLY after connection
       setIsAnalyzing(true)
     }
-
     ws.onmessage = (event) => {
 
       if (finished) return
@@ -145,10 +141,10 @@ export default function AnalyzerPage() {
 
       setLivePackets(prev => {
         const updated = [...prev, data]
-        return updated.slice(-30) // keep last 3
+        return updated.slice(-30) // keep last 30
       })
 
-      // stop after 3 packets
+      // stop after 30 packets
       if (packetBuffer.length >= 30) {
 
         finished = true
@@ -509,7 +505,7 @@ export default function AnalyzerPage() {
                     <li>
                       Install Npcap (https://npcap.com/) to allow packet capturing on Windows.
                     </li>
-                    
+
                     <li>
                       Download the <b>MAD_HOT_IDS_Sensor.exe</b> program.
                     </li>

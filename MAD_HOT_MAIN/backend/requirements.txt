@@ -11,3 +11,4 @@ scikit_learn
 uvicorn
 python-dotenv
 python-multipart
+kafka-python

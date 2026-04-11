@@ -26,10 +26,15 @@ from collections import defaultdict
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 
+from kafka import KafkaConsumer
+import threading
+import json
+
 load_dotenv()
 
 MONGO_URI = os.getenv("MONGO_URI")
 MODEL_PATH = os.getenv("MODEL_PATH", "model/iot23_ids_model.pkl")
+USE_KAFKA = os.getenv("USE_KAFKA", "false").lower() == "true"
 
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is required")
@@ -347,6 +352,38 @@ def analyze_live(features):
 
     packet_counter += 1
 
+def start_kafka_consumer():
+    print("🚀 Kafka consumer started...")
+
+    consumer = KafkaConsumer(
+        'network_packets',
+        bootstrap_servers='localhost:9092',
+        value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+    )
+
+    for msg in consumer:
+        data = msg.value
+
+        # ⚠️ Only process if live session active
+        if not live_session_active:
+            continue
+
+        try:
+            features = {
+                "sourceIp": data["sourceIp"],
+                "destIp": data["destIp"],
+                "protocol": 6 if data["protocol"] == "tcp" else 17 if data["protocol"] == "udp" else 1,
+                "packetRate": data["packetRate"],
+                "packetSize": data["packetSize"],
+                "flowDuration": data["flowDuration"]
+            }
+
+            # 🔥 reuse your existing pipeline
+            analyze_live(features)
+
+        except Exception as e:
+            print("Kafka processing error:", e)
+
 @app.get("/live-status")
 def live_status():
     return {"live": live_session_active}
@@ -409,6 +446,16 @@ async def startup_event():
     global event_loop
     event_loop = asyncio.get_running_loop()
 
+    if USE_KAFKA:
+        try:
+            thread = threading.Thread(target=start_kafka_consumer)
+            thread.daemon = True
+            thread.start()
+            print("✅ Kafka consumer thread started")
+        except Exception as e:
+            print("❌ Kafka failed, running without it:", e)
+    else:
+        print("⚠️ Kafka disabled — running in API mode")
 # ---------------------------------------------------
 # Manual Packet Endpoint
 # ---------------------------------------------------
@@ -633,10 +680,15 @@ async def upload_file(file: UploadFile = File(...)):
 @app.websocket("/ws/live-detection")
 async def live_detection_ws(websocket: WebSocket):
 
+    global live_session_active
+
     print("WebSocket client connected")
 
     await websocket.accept()
     clients.append(websocket)
+
+    # 🔥 AUTO START LIVE
+    live_session_active = True
 
     try:
         while True:
@@ -648,7 +700,6 @@ async def live_detection_ws(websocket: WebSocket):
             clients.remove(websocket)
 
         print("WebSocket client disconnected")
-
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")

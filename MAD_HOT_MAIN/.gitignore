@@ -3,15 +3,36 @@ __v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 
-# Common ignores
+# Node / Next.js
 node_modules/
 .next/
-.env*.local
+.vercel/
+
+# Environment files
 .env
 .env.*
+.env*.local
 !.env.example
+
 backend/.env
 backend/.env.*
 !backend/.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# OS files
 .DS_Store
-.vercel
+Thumbs.db
+
+# Logs
+*.log

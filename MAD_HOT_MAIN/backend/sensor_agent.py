@@ -1,37 +1,43 @@
-import requests
 import time
 import os
+import json
 from dotenv import load_dotenv
+from kafka import KafkaProducer
 from live_detection.packet_sniffer import PacketSniffer
 
+# Load env variables
 load_dotenv()
 
-BACKEND_ANALYZE_URL = os.getenv("BACKEND_ANALYZE_URL")
+# Kafka Configuration
+KAFKA_BROKER = "localhost:9092"
+KAFKA_TOPIC = "network_packets"
 
-if not BACKEND_ANALYZE_URL:
-    raise ValueError("BACKEND_ANALYZE_URL environment variable is required")
+# Initialize Kafka Producer
+producer = KafkaProducer(
+    bootstrap_servers=KAFKA_BROKER,
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
 
 packet_counter = 0
 last_sent = 0
-MAX_PACKETS = 50
+MAX_PACKETS = 65
+
 
 def send_packet(features):
-
     global packet_counter, last_sent
 
     now = time.time()
 
-    # throttle packets
+    # Throttle packets (avoid flooding)
     if now - last_sent < 0.2:
         return
-    
+
     if packet_counter >= MAX_PACKETS:
-       return
+        return
 
     last_sent = now
 
     try:
-
         proto_map = {
             6: "tcp",
             17: "udp",
@@ -49,20 +55,23 @@ def send_packet(features):
             "flowDuration": float(features.get("flowDuration", 0.1))
         }
 
-        r = requests.post(BACKEND_ANALYZE_URL, json=data, timeout=3)
+        # 🔥 Send to Kafka instead of API
+        producer.send(KAFKA_TOPIC, data)
 
-        if r.status_code == 200:
-            packet_counter += 1
-            if packet_counter ==1:
-             print("Packet capture and analysis started...")
-             print(f"Sent packet {packet_counter}")
+        packet_counter += 1
+
+        if packet_counter == 1:
+            print("🚀 Packet capture and Kafka streaming started...")
+
+        print(f"📡 Sent packet {packet_counter}: {data}")
 
     except Exception as e:
-        print("Error sending packet:", e)
+        print("❌ Error sending packet:", e)
 
 
-print("Starting IDS sensor...")
-print("Starting IDS packet capture...")
+print("🚀 Starting IDS sensor...")
+print("📡 Starting packet capture...")
 
+# Start Sniffer
 sniffer = PacketSniffer(send_packet)
 sniffer.start()

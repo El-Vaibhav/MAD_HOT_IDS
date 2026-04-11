@@ -1,12 +1,19 @@
-const DEFAULT_API_BASE_URL = "https://mad-hot-ids.onrender.com"
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+// 🔥 Base API URL (auto-switch between local & production)
+const DEFAULT_API_BASE_URL = "http://localhost:8000"
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+
+// 🔥 Convert HTTP → WS automatically
 const apiAsWs = API_BASE_URL
   .replace(/^https:\/\//, "wss://")
   .replace(/^http:\/\//, "ws://")
 
-const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || apiAsWs
+// 🔥 Allow override for WebSocket (optional)
+const WS_BASE_URL =
+  process.env.NEXT_PUBLIC_WS_BASE_URL || apiAsWs
 
+// 🔥 All endpoints
 export const ENDPOINTS = {
   analyze: `${API_BASE_URL}/analyze`,
   upload: `${API_BASE_URL}/upload`,
