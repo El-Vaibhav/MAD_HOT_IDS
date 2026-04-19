@@ -22,6 +22,15 @@ export function NetworkAnimation() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
+    const nav = navigator as Navigator & { deviceMemory?: number }
+    const isSmallScreen = window.matchMedia("(max-width: 768px)").matches
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const lowPowerDevice =
+      (nav.deviceMemory !== undefined && nav.deviceMemory <= 4) ||
+      navigator.hardwareConcurrency <= 4
+
+    if (isSmallScreen || prefersReducedMotion || lowPowerDevice) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -31,15 +40,19 @@ export function NetworkAnimation() {
     let animationId: number
     let nodes: Node[] = []
     let packets: Packet[] = []
+    let isPaused = false
+    let lastFrameTime = 0
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5)
+      canvas.width = Math.floor(canvas.offsetWidth * ratio)
+      canvas.height = Math.floor(canvas.offsetHeight * ratio)
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.scale(ratio, ratio)
     }
 
     const initNodes = () => {
-      const nodeCount = Math.min(25, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 20000))
+      const nodeCount = Math.min(16, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 30000))
       nodes = []
       
       for (let i = 0; i < nodeCount; i++) {
@@ -70,7 +83,7 @@ export function NetworkAnimation() {
     }
 
     const spawnPacket = () => {
-      if (packets.length < 15 && nodes.length > 1) {
+      if (packets.length < 8 && nodes.length > 1) {
         const fromNode = Math.floor(Math.random() * nodes.length)
         const node = nodes[fromNode]
         if (node.connections.length > 0) {
@@ -85,7 +98,14 @@ export function NetworkAnimation() {
       }
     }
 
-    const draw = () => {
+    const draw = (time: number) => {
+      if (isPaused) return
+      if (time - lastFrameTime < 33) {
+        animationId = requestAnimationFrame(draw)
+        return
+      }
+      lastFrameTime = time
+
       ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight)
 
       // Draw connections
@@ -157,18 +177,31 @@ export function NetworkAnimation() {
       animationId = requestAnimationFrame(draw)
     }
 
-    resize()
-    initNodes()
-    draw()
+    const handleVisibilityChange = () => {
+      isPaused = document.hidden
+      if (!isPaused) {
+        animationId = requestAnimationFrame(draw)
+      } else {
+        cancelAnimationFrame(animationId)
+      }
+    }
 
-    window.addEventListener("resize", () => {
+    const handleResize = () => {
       resize()
       initNodes()
-    })
+    }
+
+    resize()
+    initNodes()
+    animationId = requestAnimationFrame(draw)
+
+    window.addEventListener("resize", handleResize)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
       cancelAnimationFrame(animationId)
-      window.removeEventListener("resize", resize)
+      window.removeEventListener("resize", handleResize)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [])
 
