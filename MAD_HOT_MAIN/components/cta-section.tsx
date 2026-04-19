@@ -6,10 +6,10 @@ import { Shield, ArrowRight, Zap } from "lucide-react"
 
 export function CTASection() {
   return (
-    <section className="relative py-24">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5" />
+    <section className="relative border-b border-border/60 bg-background py-24">
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
       <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/20">
+        <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-secondary">
           <Shield className="h-10 w-10 text-primary" />
         </div>
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
@@ -22,7 +22,7 @@ export function CTASection() {
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link href="/analyzer">
-            <Button size="lg" className="gap-2 glow-cyan text-base">
+            <Button size="lg" className="gap-2 text-base shadow-sm">
               <Zap className="h-5 w-5" />
               Start Internet Security Analysis
               <ArrowRight className="h-4 w-4" />
