@@ -7,7 +7,7 @@ import { Activity, LayoutDashboard, BookOpen, ArrowRight, Shield } from "lucide-
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen overflow-hidden pt-16">
+    <section className="relative min-h-[92svh] overflow-hidden pt-16 sm:min-h-screen">
       {/* Background */}
       <div className="absolute inset-0 cyber-grid" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
@@ -70,7 +70,7 @@ export function HeroSection() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 lg:block">
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <span className="text-xs">Scroll to explore</span>
             <div className="h-8 w-5 rounded-full border border-muted-foreground/30 p-1">
