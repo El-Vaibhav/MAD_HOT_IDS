@@ -3,26 +3,30 @@ Intelligent Intrusion Detection System with Visualization & Analytics
 
 MAD_HOT_IDS is a full-stack Intrusion Detection System (IDS) that analyzes network traffic, detects anomalies using machine learning, and provides interactive visual insights through a modern dashboard.
 
+# WebApp Screenshots
 <img width="1917" height="915" alt="image" src="https://github.com/user-attachments/assets/4b3d0477-a5fa-4e76-b2fc-9d95581beaef" />
-
 <br><br>
-
 <img width="1647" height="896" alt="image" src="https://github.com/user-attachments/assets/1bb119ca-e262-4409-86e2-de39a7be5730" />
-
 <br><br>
-
 <img width="1583" height="887" alt="image" src="https://github.com/user-attachments/assets/a9e8c47d-4c04-4cfc-8051-ba2eeed3fbd8" />
-
 <br><br>
-
 <img width="1883" height="905" alt="image" src="https://github.com/user-attachments/assets/52f2cb72-dcb1-4ca1-9e0d-28bec8a300ad" />
-
 <br><br>
-
-
 <img width="1893" height="864" alt="image" src="https://github.com/user-attachments/assets/087c28d3-9970-42fd-997d-96a8b6c19069" />
 
+# MobileApp Screenshots
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/db67c93c-9e2c-4010-8dea-5625f8fe8652" width="22%" style="vertical-align: top;" />
+  <img src="https://github.com/user-attachments/assets/dca14bb1-307c-4535-888d-a94a5449863e" width="22%" style="vertical-align: top;" />
+  <img src="https://github.com/user-attachments/assets/1d59785a-6dbd-4884-82f7-abfe32dc519c" width="22%" style="vertical-align: top;" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/551ecf65-7b90-43b2-8827-dfc66eebae89" width="22%" style="vertical-align: top;" />
+  <img src="https://github.com/user-attachments/assets/5838d6c5-1c33-4cc4-bd3e-b53dad1cabe5" width="22%" style="vertical-align: top;" />
+  <img src="https://github.com/user-attachments/assets/a7c6f5e0-b8f2-441a-97ac-bfd2ccf8a7c9" width="22%" style="vertical-align: top;" />
+</p>
 
 
 
