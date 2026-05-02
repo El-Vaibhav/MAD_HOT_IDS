@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from "@/context/AuthContext";
+import { fetchWithAuth } from "@/lib/api";
 import {
   Table,
   TableBody,
@@ -131,6 +133,7 @@ export default function DashboardPage() {
     bandwidth: 0,
     systemRisk: 0,
   })
+  const { user } = useAuth();
   const [protocolData, setProtocolData] = useState([
     { name: "TCP", value: 68 },
     { name: "UDP", value: 22 },
@@ -171,7 +174,7 @@ export default function DashboardPage() {
 
   async function getIPLocation(ip: string) {
     try {
-      const res = await fetch(`http://ip-api.com/json/${ip}`)
+      const res = await fetchWithAuth(`http://ip-api.com/json/${ip}`)
       const data = await res.json()
 
       return {
@@ -191,7 +194,7 @@ export default function DashboardPage() {
 
     try {
 
-      const res = await fetch(ENDPOINTS.recentPackets)
+      const res = await fetchWithAuth("/recent-packets")
       if (!res.ok) {
         throw new Error(`Recent packets API failed: ${res.status}`)
       }
@@ -614,6 +617,16 @@ export default function DashboardPage() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Live IDS Dashboard</h1>
+            {!user && (
+              <p className="text-yellow-400 text-xs mt-1">
+                Viewing global data (Login for personalized insights)
+              </p>
+            )}
+            {user && (
+              <p className="text-green-400 text-xs mt-1">
+                Logged in as {user}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               Real-time network intrusion detection monitoring
             </p>

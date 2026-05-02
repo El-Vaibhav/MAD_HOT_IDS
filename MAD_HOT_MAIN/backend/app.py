@@ -30,11 +30,19 @@ from kafka import KafkaConsumer
 import threading
 import json
 
-load_dotenv()
+from auth.routes import router as auth_router
+from auth.dependencies import get_current_user_optional
+from fastapi import Depends
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 MONGO_URI = os.getenv("MONGO_URI")
 MODEL_PATH = os.getenv("MODEL_PATH", "model/iot23_ids_model.pkl")
 USE_KAFKA = os.getenv("USE_KAFKA", "false").lower() == "true"
+
+if not os.path.isabs(MODEL_PATH):
+    MODEL_PATH = os.path.join(BASE_DIR, MODEL_PATH)
 
 if not MONGO_URI:
     raise ValueError("MONGO_URI environment variable is required")
@@ -44,6 +52,34 @@ client = MongoClient(MONGO_URI)
 db = client["ids_database"]   # database name
 collection = db["packets"]    # collection name
 
+LEGACY_PACKET_FILTER = {
+    "$or": [
+        {"user": None},
+        {"user": ""},
+        {"user": {"$exists": False}}
+    ]
+}
+
+SAFE_LABELS = {"Normal", "Normal Traffic", "Benign"}
+INTELLIGENCE_EXCLUDED_LABELS = {"Normal"}
+
+
+def get_user_filter(user):
+    if user and user.get("email"):
+        return {
+            "$or": [
+                {"user": user["email"]},
+                {"user": None},
+                {"user": ""},
+                {"user": {"$exists": False}}
+            ]
+        }
+    return LEGACY_PACKET_FILTER
+
+def serialize_packet(packet):
+    packet["id"] = str(packet["_id"])   # convert ObjectId
+    del packet["_id"]                  # remove problematic field
+    return packet
 # ---------------------------------------------------
 # Hoeffding Tree Wrapper (REQUIRED FOR PICKLE)
 # ---------------------------------------------------
@@ -116,14 +152,18 @@ print("Model loaded successfully")
 # ---------------------------------------------------
 
 app = FastAPI(title="MAD-HOT IDS Backend")
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",           # local dev
+        "https://mad-hot-ids.vercel.app"  # production frontend
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
-
 
 # ---------------------------------------------------
 # Globals
@@ -461,8 +501,10 @@ async def startup_event():
 # ---------------------------------------------------
 
 @app.post("/analyze")
-
-def analyze_packet(data: PacketFeatures):
+def analyze_packet(
+    data: PacketFeatures,
+    user: dict = Depends(get_current_user_optional)   # ✅ optional auth
+):
 
     print("Received packet:", data)
 
@@ -471,7 +513,9 @@ def analyze_packet(data: PacketFeatures):
     if attack == "Benign":
         attack = "Normal Traffic"
 
-    # SAVE TO MONGODB
+    # 🔥 SAFE USER HANDLING
+    user_email = user.get("email") if user else None
+
     save_packet(
         {
             "sourceIp": data.sourceIp,
@@ -479,31 +523,32 @@ def analyze_packet(data: PacketFeatures):
             "protocol": data.protocol,
             "packetRate": data.packetRate,
             "packetSize": data.packetSize,
-            "flowDuration": data.flowDuration
+            "flowDuration": data.flowDuration,
+            "user": user_email   # ✅ only if exists
         },
         attack,
         confidence
     )
 
     result = {
-    "attack": attack,
-    "confidence": confidence,
-    "sourceIp": data.sourceIp,
-    "destIp": data.destIp,
-    "protocol": data.protocol,
-    "packetRate": data.packetRate,
-    "packetSize": data.packetSize
-}
-    # broadcast to frontend if live session
+        "attack": attack,
+        "confidence": confidence,
+        "sourceIp": data.sourceIp,
+        "destIp": data.destIp,
+        "protocol": data.protocol,
+        "packetRate": data.packetRate,
+        "packetSize": data.packetSize
+    }
+
     if event_loop and clients:
-      future = asyncio.run_coroutine_threadsafe(
-        broadcast(result),
-        event_loop
-    )
-      try:
-        future.result()
-      except:
-        pass
+        future = asyncio.run_coroutine_threadsafe(
+            broadcast(result),
+            event_loop
+        )
+        try:
+            future.result()
+        except:
+            pass
 
     return result
 
@@ -514,7 +559,7 @@ def analyze_packet(data: PacketFeatures):
 
 @app.post("/upload")
 
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), user: dict = Depends(get_current_user_optional)):
 
     try:
 
@@ -536,7 +581,7 @@ async def upload_file(file: UploadFile = File(...)):
         packet_rate_series = []
         heatmap_counter = [0] * 24
 
-
+        user_email = user.get("email") if user else None
         for _, row in df.iterrows():
 
             packet = PacketFeatures(
@@ -573,7 +618,8 @@ async def upload_file(file: UploadFile = File(...)):
             "protocol": packet.protocol,
             "packetRate": packet.packetRate,
             "packetSize": packet.packetSize,
-            "flowDuration": packet.flowDuration
+            "flowDuration": packet.flowDuration,
+            "user": user_email
             },
         attack,
         confidence
@@ -703,9 +749,16 @@ async def live_detection_ws(websocket: WebSocket):
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")
-async def attack_intelligence():
+async def attack_intelligence(user: dict = Depends(get_current_user_optional)):
 
-    packets = list(collection.find().sort("timestamp", -1).limit(5000))
+    filter_query = get_user_filter(user)
+
+    packets = list(
+        collection.find(filter_query)
+        .sort("timestamp", -1)
+        .limit(20000)
+    )
+    packets = [serialize_packet(p) for p in packets]
 
     attack_counts = {}
     regions = {}
@@ -723,7 +776,7 @@ async def attack_intelligence():
       country = p.get("country", "Unknown")
       source = p.get("sourceIp", "unknown")
 
-      if label != "Normal":
+      if label not in INTELLIGENCE_EXCLUDED_LABELS:
 
         attack_counts[label] = attack_counts.get(label, 0) + 1
         regions[country] = regions.get(country, 0) + 1
@@ -809,7 +862,7 @@ async def attack_intelligence():
         except:
             continue
 
-        if label != "Normal":
+        if label not in INTELLIGENCE_EXCLUDED_LABELS:
             trend_counts[hour]["attacks"] += 1
             if random.random() < 0.8:
              trend_counts[hour]["blocked"] += 1
@@ -836,20 +889,27 @@ async def attack_intelligence():
         "attack_distribution": attack_distribution,
         "top_regions": top_regions,
         "trend_data": trend_data,
-        "recent_threats": recent[:10]
+        "recent_threats": recent[:10],
+        "scope": "user_with_legacy" if user and user.get("email") else "legacy",
+        "user": user.get("email") if user else None
     }
 # Account section data endpoint
 @app.get("/account-data")
-def account_data():
+def account_data(user: dict = Depends(get_current_user_optional)):
 
-    total_analyses = collection.count_documents({})
+    filter_query = get_user_filter(user)
 
-    packets = list(collection.find().sort("timestamp", -1).limit(100))
+    total_analyses = collection.count_documents(filter_query)
+
+    packets = list(
+        collection.find(filter_query)
+        .sort("timestamp", -1)
+        .limit(100)
+    )
     
-
     attacks_detected = sum(
         1 for p in packets
-        if p.get("prediction") not in ["Normal", "Normal Traffic", "Benign"]
+        if p.get("prediction") not in SAFE_LABELS
     )
 
     safe_scans = total_analyses - attacks_detected
@@ -866,7 +926,7 @@ def account_data():
             "id": str(r.get("_id"))[-6:],
             "date": r.get("timestamp", "unknown"),
             "type": "Live Analysis",
-            "result": "attack" if label not in ["Normal", "Normal Traffic", "Benign"] else "safe",
+            "result": "attack" if label not in SAFE_LABELS else "safe",
             "attackType": label,
             "confidence": round(r.get("confidence", 0) * 100, 2)
         })
@@ -877,7 +937,7 @@ def account_data():
     for p in packets:
         label = p.get("prediction", "Normal")
 
-        if label not in ["Normal", "Normal Traffic", "Benign"]:
+        if label not in SAFE_LABELS:
             attack_counts[label] = attack_counts.get(label, 0) + 1
 
     attack_summary = [
@@ -945,9 +1005,17 @@ def get_profile():
 # ---------------------------------------------------
 
 @app.get("/recent-packets")
-def recent_packets():
+def recent_packets(user: dict = Depends(get_current_user_optional)):
 
-    return get_recent_packets()
+    filter_query = get_user_filter(user)
+
+    packets = list(
+    collection.find(filter_query)
+    .sort("timestamp", -1)
+    .limit(50)
+)
+
+    return [serialize_packet(p) for p in packets]
 
 
 # ---------------------------------------------------

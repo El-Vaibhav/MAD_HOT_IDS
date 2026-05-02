@@ -32,7 +32,7 @@ export function HeroSection() {
           research-backed AI intrusion detection system.
         </p>
 
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:flex-wrap">
           <Link href="/analyzer">
             <Button size="lg" className="gap-2 glow-cyan text-base">
               <Activity className="h-5 w-5" />

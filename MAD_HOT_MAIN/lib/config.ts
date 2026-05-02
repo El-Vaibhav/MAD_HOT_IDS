@@ -25,4 +25,6 @@ export const ENDPOINTS = {
   accountData: `${API_BASE_URL}/account-data`,
   getProfile: `${API_BASE_URL}/get-profile`,
   updateProfile: `${API_BASE_URL}/update-profile`,
+  register: `${API_BASE_URL}/auth/register`,
+  login: `${API_BASE_URL}/auth/login`,
 }

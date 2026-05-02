@@ -4,6 +4,7 @@ joblib
 numpy
 pandas
 pydantic
+email-validator
 pymongo
 river
 scapy
@@ -12,3 +13,5 @@ uvicorn
 python-dotenv
 python-multipart
 kafka-python
+bcrypt
+python-jose[cryptography]

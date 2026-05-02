@@ -3,19 +3,26 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 mongo_uri = os.getenv("MONGO_URI")
 
 if not mongo_uri:
     raise ValueError("MONGO_URI environment variable is required")
 
-client = MongoClient(mongo_uri)
+client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
 
 db = client["ids_database"]
 packets_collection = db["packets"]
+users_collection = db["users"]
 
-
+try:
+    client.server_info()
+    print("MongoDB connected successfully")
+except Exception as e:
+    print("MongoDB connection failed:", e)
+    
 def save_packet(packet, prediction, confidence):
 
     document = {
@@ -29,6 +36,9 @@ def save_packet(packet, prediction, confidence):
         "confidence": confidence,
         "timestamp": datetime.utcnow()
     }
+
+    if packet.get("user") is not None:
+        document["user"] = packet["user"]
 
     packets_collection.insert_one(document)
 

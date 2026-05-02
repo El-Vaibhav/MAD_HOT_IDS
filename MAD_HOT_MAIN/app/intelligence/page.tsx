@@ -42,12 +42,20 @@ import {
   Area,
 } from "recharts"
 import { ENDPOINTS } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api"
+import { useAuth } from "@/context/AuthContext"
 
 
-const pieColors = ["#ef4444", "#f97316", "#22c55e", "#8b5cf6"]
+const pieColors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#8b5cf6", "#ec4899"]
+
+const renderPieLabel = ({ name, value }: { name: string; value: number }) => {
+  if (value < 3) return ""
+  return `${name}: ${value}%`
+}
 
 export default function IntelligencePage() {
 
+  const { user } = useAuth()
   const [attackTypeData, setAttackTypeData] = useState<any[]>([])
   const [attackDistribution, setAttackDistribution] = useState<any[]>([])
   const [topRegions, setTopRegions] = useState<any[]>([])
@@ -65,8 +73,9 @@ export default function IntelligencePage() {
   useEffect(() => {
 
     setLoading(true)
+    setError(null)
 
-    fetch(ENDPOINTS.attackIntelligence)
+    fetchWithAuth("/attack-intelligence")
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to load intelligence data: ${res.status}`)
@@ -95,7 +104,7 @@ export default function IntelligencePage() {
         setError("Unable to load intelligence data. Please check backend connectivity.")
         setLoading(false)
       })
-  }, [])
+  }, [user])
 
   if (loading) {
     return (
@@ -140,6 +149,18 @@ export default function IntelligencePage() {
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             Comprehensive threat analysis and attack statistics from the MAD-HOT intrusion detection system.
           </p>
+
+          {!user && (
+            <p className="mt-3 text-xs text-yellow-400">
+              Viewing legacy shared intelligence. Login for user-specific threat data.
+            </p>
+          )}
+
+          {user && (
+            <p className="mt-3 text-xs text-green-400">
+              Logged in as {user}. Showing your intelligence data with legacy baseline records.
+            </p>
+          )}
         </div>
 
 
@@ -266,7 +287,8 @@ export default function IntelligencePage() {
                       innerRadius={60}
                       outerRadius={100}
                       paddingAngle={4}
-                      label={({ name, value }) => `${name}: ${value}%`}
+                      label={renderPieLabel}
+                      labelLine={false}
                       animationDuration={1200}
                       animationBegin={200}
                     >
