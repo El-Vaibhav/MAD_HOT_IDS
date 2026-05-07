@@ -45,7 +45,7 @@ export function Navigation() {
             <Shield className="h-5 w-5 text-primary-foreground" />
             <div className="absolute inset-0 rounded-lg bg-primary/50 blur-sm" />
           </div>
-          <span className="text-xl font-bold tracking-tight">
+          <span className="text-xl font-bold tracking-tight hidden sm:inline">
             MAD-HOT <span className="text-primary">IDS</span>
           </span>
         </Link>
@@ -78,7 +78,7 @@ export function Navigation() {
           </Button>
 
           {/* 🔥 SINGLE AUTH BUTTON (NO SHIFT) */}
-          <Link href={user ? "/account" : "/login"}>
+          <Link href={user ? "/account" : "/login"} className="hidden md:block">
             <Button
               variant="outline"
               size="sm"
@@ -91,7 +91,7 @@ export function Navigation() {
           </Link>
 
           {/* ANALYZE */}
-          <div className="flex items-center gap-2 ml-2">
+          <div className="hidden md:flex items-center gap-2 ml-2">
 
             {/* ANALYZE */}
             <Link href="/analyzer">
