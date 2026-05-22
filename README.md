@@ -71,6 +71,8 @@ Hoeffding Trees/ Decision Tree / Random Forest / SVM (configurable)
 KDD Dataset-based training
 
 # 📂 Project Structure
+```text
+
 MAD_HOT_IDS/
 │
 ├── frontend/                # React frontend
@@ -87,6 +89,7 @@ MAD_HOT_IDS/
 ├── models/                 # Saved ML models
 ├── assets/                 # Images & static files
 └── README.md
+```
 
 # ⚙️ Installation & Setup
 ## 1️⃣ Clone the Repository
