@@ -27,7 +27,6 @@ export default function LoginPage() {
     try {
       const res = await fetch(ENDPOINTS.login, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -41,7 +40,7 @@ export default function LoginPage() {
       }
 
       localStorage.removeItem(GUEST_KEY)
-      await login()
+      login(data.access_token)
       router.push("/dashboard")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Could not reach the backend")

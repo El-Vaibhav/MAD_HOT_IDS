@@ -1,42 +1,24 @@
-from fastapi import Depends, HTTPException, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from .utils import decode_token
 
-from .utils import ACCESS_TOKEN_COOKIE, decode_token
-
+# THIS LINE FIXES EVERYTHING
 security = HTTPBearer(auto_error=False)
 
-
-def _extract_token(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials | None,
-):
-    if credentials:
-        return credentials.credentials
-    return request.cookies.get(ACCESS_TOKEN_COOKIE)
-
-
-def get_current_user(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-):
-    token = _extract_token(request, credentials)
-    if not token:
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if not credentials:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     try:
-        return decode_token(token)
-    except Exception:
+        return decode_token(credentials.credentials)
+    except:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-def get_current_user_optional(
-    request: Request,
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-):
+def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
-        token = _extract_token(request, credentials)
-        if token:
-            return decode_token(token)
+        if credentials:
+            return decode_token(credentials.credentials)
         return None
-    except Exception:
+    except:
         return None
