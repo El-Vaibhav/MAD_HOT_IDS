@@ -63,6 +63,7 @@ export default function IntelligencePage() {
   const [recentThreats, setRecentThreats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [legacyAccess, setLegacyAccess] = useState(false)
 
   const [stats, setStats] = useState({
     total_attacks: 0,
@@ -89,6 +90,7 @@ export default function IntelligencePage() {
         setTopRegions(data.top_regions || [])
         setTrendData(data.trend_data || [])
         setRecentThreats(data.recent_threats || [])
+        setLegacyAccess(data.legacy_access ?? false)
 
         setStats({
           total_attacks: data.total_attacks || 0,
@@ -158,7 +160,10 @@ export default function IntelligencePage() {
 
           {user && (
             <p className="mt-3 text-xs text-green-400">
-              Logged in as {user}. Showing your intelligence data with legacy baseline records.
+              Logged in as {user}.{" "}
+              {legacyAccess
+                ? "Showing your intelligence data with legacy baseline records."
+                : "Showing your personal attack intelligence."}
             </p>
           )}
         </div>

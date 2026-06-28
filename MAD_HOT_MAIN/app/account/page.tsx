@@ -38,10 +38,10 @@ export default function AccountPage() {
 const [name, setName] = useState("")
 const [email, setEmail] = useState("")
 
-const user = {
-plan: "Professional",
-joinDate: "March 2025",
-}
+const [user, setUser] = useState({
+  plan: "Free",
+  joinDate: "",
+})
 
 const [stats, setStats] = useState({
 total_analyses: 0,
@@ -58,16 +58,31 @@ fetchAccountData()
 loadProfile()
 }, [])
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
 const loadProfile = async () => {
 try {
 
-const res = await fetch(ENDPOINTS.getProfile)
+const res = await fetch(ENDPOINTS.getProfile, {
+  headers: getAuthHeaders(),
+})
 if (!res.ok) throw new Error(`Profile API failed: ${res.status}`)
 const data = await res.json()
 
 setName(data.name)
 setEmail(data.email)
 
+setUser({
+  plan: data.plan || "Free",
+  joinDate: data.joinDate || "",
+})
 } catch (err) {
 console.error("Failed to load profile", err)
 }
@@ -76,7 +91,10 @@ console.error("Failed to load profile", err)
 const fetchAccountData = async () => {
 try {
 
-const res = await fetch(ENDPOINTS.accountData)
+const res = await fetch(ENDPOINTS.accountData, {
+  headers: getAuthHeaders(),
+})
+
 if (!res.ok) throw new Error(`Account API failed: ${res.status}`)
 const data = await res.json()
 
@@ -99,9 +117,8 @@ const saveProfile = async () => {
 try {
 
 await fetch(ENDPOINTS.updateProfile, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ name, email })
+  method: "POST",
+  headers: getAuthHeaders(),
 })
 
 alert("Profile updated successfully")
@@ -138,10 +155,18 @@ return (
 </div>
 
 <div className="flex items-center gap-2">
-<Badge className="bg-primary/20 text-primary">{user.plan}</Badge>
-<span className="text-sm text-muted-foreground">
-Member since {user.joinDate}
-</span>
+
+  <Badge className="bg-primary/20 text-primary">
+    {user.plan}
+  </Badge>
+
+  {user.joinDate && (
+    <span className="text-sm text-muted-foreground">
+      Member since{" "}
+      {new Date(user.joinDate).toLocaleDateString()}
+    </span>
+  )}
+
 </div>
 
 </div>

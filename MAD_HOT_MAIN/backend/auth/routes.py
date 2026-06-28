@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from .schemas import UserCreate, UserLogin
 from .utils import hash_password, verify_password, create_access_token
 from db_mongo import users_collection
+import datetime
 
 router = APIRouter()
 
@@ -13,7 +14,10 @@ def register(user: UserCreate):
 
     users_collection.insert_one({
         "email": user.email,
-        "password": hash_password(user.password)
+        "password": hash_password(user.password),
+        "legacy_access": False,
+        "created_at": datetime.utcnow(),
+        "plan": "Free"
     })
 
     return {"message": "User registered successfully"}
@@ -30,5 +34,6 @@ def login(user: UserLogin):
 
     return {
         "access_token": token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "legacy_access": db_user.get("legacy_access", False)
     }

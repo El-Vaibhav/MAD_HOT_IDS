@@ -226,14 +226,21 @@ export default function DashboardPage() {
 
       /* ---------- ALERTS ---------- */
 
+
       const newAlerts = uniquePackets
-        .filter(p => p.prediction !== "Benign")
+        .filter(p => p.prediction !== "Benign" && p.prediction !== "Normal Traffic")
         .slice(0, 10)
-        .map((p, i) => ({
+        .map((p, i): Alert => ({
 
           id: "ALT-" + i,
 
-          severity: "high" as const,
+          severity:
+
+            p.confidence >= 0.9
+              ? "critical"
+              : p.confidence >= 0.75
+                ? "high"
+                : "medium",
 
           type: p.prediction,
 
@@ -283,7 +290,10 @@ export default function DashboardPage() {
 
         let status: Connection["status"] = "active"
 
-        if (p.prediction !== "Benign") {
+        if (
+          p.prediction !== "Benign" &&
+          p.prediction !== "Normal Traffic"
+        ) {
           status = "suspicious"
         }
 
@@ -312,7 +322,7 @@ export default function DashboardPage() {
 
       /* ---------- STATS ---------- */
 
-      const threats = uniquePackets.filter(p => p.prediction !== "Benign").length
+      const threats = uniquePackets.filter(p => p.prediction !== "Benign" && p.prediction !== "Normal Traffic").length
 
       const threatRatio = threats / (uniquePackets.length || 1)
 
@@ -348,11 +358,19 @@ export default function DashboardPage() {
 
       bandwidthMB = Number(bandwidthMB.toFixed(2))
 
+
+
       /* ----- Risk Calculation ----- */
 
+
+      const maliciousPackets = uniquePackets.filter(
+        (p) => p.prediction !== "Normal Traffic" && p.prediction !== "Benign"
+      )
+      const maliciousRatio =
+        maliciousPackets.length / Math.max(uniquePackets.length, 1)
+
       let risk =
-        threatRatio * 60 +
-        avgConfidence * 30 +
+        maliciousRatio * 90 +
         Math.min(avgPacketRate, 10)
 
       risk = Math.min(100, Math.round(risk))
@@ -488,7 +506,7 @@ export default function DashboardPage() {
 
         if (!uniquePackets.length) return prev
 
-        const attacks = uniquePackets.filter(p => p.prediction !== "Benign").length
+        const attacks = uniquePackets.filter(p => p.prediction !== "Benign" && p.prediction !== "Normal Traffic").length
 
         // base traffic
         let packets = 2000 + Math.random() * 1000
@@ -703,7 +721,7 @@ export default function DashboardPage() {
 
           {/* Center Column - Live View */}
           <div className="lg:col-span-6 space-y-4">
-            {selectedAlert && (
+            {selectedAlert ? (
               <>
                 {/* Attack Header */}
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
@@ -920,7 +938,155 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </>
-            )}
+            ) : (
+              <>
+                {/* Healthy Network Overview */}
+
+                <Card className="border-green-500/20 bg-card/50 backdrop-blur-sm">
+                  <CardContent className="p-6">
+
+                    <div className="flex items-center gap-3">
+
+                      <Shield className="h-8 w-8 text-green-500" />
+
+                      <div>
+                        <h2 className="text-2xl font-bold text-green-400">
+                          Network Secure
+                        </h2>
+
+                        <p className="text-muted-foreground">
+                          No threats detected. IDS is actively monitoring traffic.
+                        </p>
+                      </div>
+
+                      <Badge className="ml-auto bg-green-500/20 text-green-400 border-green-500/30">
+                        HEALTHY
+                      </Badge>
+
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-6 mt-8">
+
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">
+                          Packets Analysed
+                        </p>
+
+                        <p className="text-2xl font-bold">
+                          {stats.totalPackets.toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">
+                          Active Connections
+                        </p>
+
+                        <p className="text-2xl font-bold">
+                          {stats.activeConnections}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">
+                          Detection Status
+                        </p>
+
+                        <p className="text-2xl font-bold text-green-400">
+                          NORMAL
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">
+                          Monitoring
+                        </p>
+
+                        <p className="text-2xl font-bold text-cyan-400">
+                          LIVE
+                        </p>
+                      </div>
+
+                    </div>
+
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-2 gap-4">
+
+                  <Card className="border-green-500/20 bg-card/50 backdrop-blur-sm">
+
+                    <CardHeader>
+
+                      <CardTitle className="text-sm uppercase tracking-wider">
+                        Network Health
+                      </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                      <ul className="space-y-3">
+
+                        <li className="text-green-400">
+                          ✓ No attack signatures detected
+                        </li>
+
+                        <li className="text-green-400">
+                          ✓ Traffic follows normal baseline
+                        </li>
+
+                        <li className="text-green-400">
+                          ✓ No suspicious IP activity
+                        </li>
+
+                        <li className="text-green-400">
+                          ✓ Packet flow is stable
+                        </li>
+
+                        <li className="text-green-400">
+                          ✓ IDS engine operating normally
+                        </li>
+
+                      </ul>
+
+                    </CardContent>
+
+                  </Card>
+
+                  <Card className="border-green-500/20 bg-card/50 backdrop-blur-sm">
+
+                    <CardHeader>
+
+                      <CardTitle className="text-sm uppercase tracking-wider">
+                        Recommended Actions
+                      </CardTitle>
+
+                    </CardHeader>
+
+                    <CardContent>
+
+                      <ul className="space-y-3">
+
+                        <li>🟢 Continue monitoring traffic</li>
+
+                        <li>🟢 Firewall is functioning normally</li>
+
+                        <li>🟢 All detection engines active</li>
+
+                        <li>🟢 No mitigation required</li>
+
+                        <li>🟢 System operating securely</li>
+
+                      </ul>
+
+                    </CardContent>
+
+                  </Card>
+
+                </div>
+              </>
+               )}
           </div>
 
           {/* Right Column - System Risk */}

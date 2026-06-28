@@ -31,10 +31,10 @@ export const fetchWithAuth = async (  url: string,
     },
   });
 
-  if (res.status === 401) {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  }
+  if (res.status === 401 && token) {
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+}
 
   return res;
 };

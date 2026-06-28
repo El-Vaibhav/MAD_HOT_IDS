@@ -9,7 +9,7 @@ import time
 import os
 from dotenv import load_dotenv
 
-from fastapi import FastAPI, UploadFile, File, WebSocket
+from fastapi import FastAPI, UploadFile, File, WebSocket,HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -17,7 +17,7 @@ from river.tree import HoeffdingTreeClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin
 from collections import Counter
 
-from db_mongo import save_packet, get_recent_packets
+from db_mongo import save_packet, get_recent_packets,users_collection
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -65,16 +65,33 @@ INTELLIGENCE_EXCLUDED_LABELS = {"Normal"}
 
 
 def get_user_filter(user):
-    if user and user.get("email"):
+
+    # Guest users see legacy data
+    if not user or not user.get("email"):
+        return LEGACY_PACKET_FILTER
+
+    email = user["email"]
+
+    db_user = users_collection.find_one(
+        {"email": email},
+        {"legacy_access": 1}
+    )
+
+    # Existing users with legacy permission
+    if db_user and db_user.get("legacy_access", False):
         return {
             "$or": [
-                {"user": user["email"]},
+                {"user": email},
                 {"user": None},
                 {"user": ""},
                 {"user": {"$exists": False}}
             ]
         }
-    return LEGACY_PACKET_FILTER
+
+    # New users see only their own packets
+    return {
+        "user": email
+    }
 
 def serialize_packet(packet):
     packet["id"] = str(packet["_id"])   # convert ObjectId
@@ -877,22 +894,37 @@ async def attack_intelligence(user: dict = Depends(get_current_user_optional)):
             "blocked": trend_counts[hour]["blocked"]
         })
 
+    legacy_access = False
+    db_user = None
+
+    if user and user.get("email"):
+     db_user = users_collection.find_one(
+        {"email": user["email"]},
+        {"legacy_access": 1}
+    )
+
+    if db_user:
+      legacy_access = db_user.get("legacy_access", False)
+
     # -----------------------------
     # Final response
     # -----------------------------
+
     return {
-        "total_attacks": sum(attack_counts.values()),
-        "attack_types_count": len(attack_counts),
-        "detection_rate": 99.2,
-        "avg_response_time": 0.8,
-        "attack_types": attack_types,
-        "attack_distribution": attack_distribution,
-        "top_regions": top_regions,
-        "trend_data": trend_data,
-        "recent_threats": recent[:10],
-        "scope": "user_with_legacy" if user and user.get("email") else "legacy",
-        "user": user.get("email") if user else None
-    }
+    "total_attacks": sum(attack_counts.values()),
+    "attack_types_count": len(attack_counts),
+    "detection_rate": 99.2,
+    "avg_response_time": 0.8,
+    "attack_types": attack_types,
+    "attack_distribution": attack_distribution,
+    "top_regions": top_regions,
+    "trend_data": trend_data,
+    "recent_threats": recent[:10],
+    "legacy_access": legacy_access,
+    "user": user.get("email") if user else None
+}
+
+   
 # Account section data endpoint
 @app.get("/account-data")
 def account_data(user: dict = Depends(get_current_user_optional)):
@@ -968,36 +1000,48 @@ class ProfileUpdate(BaseModel):
     email: str
 
 @app.post("/update-profile")
-def update_profile(data: ProfileUpdate):
+def update_profile(
+    data: ProfileUpdate,
+    user: dict = Depends(get_current_user_optional)
+):
 
-    profile = {
-        "name": data.name,
-        "email": data.email,
-        "updated_at": datetime.now()
-    }
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     db["profile"].update_one(
-        {"_id": "user_profile"},
-        {"$set": profile},
+        {"email": user["email"]},
+        {
+            "$set": {
+                "name": data.name,
+                "updated_at": datetime.now()
+            }
+        },
         upsert=True
     )
 
     return {"status": "success"}
 
 @app.get("/get-profile")
-def get_profile():
+def get_profile(
+    user: dict = Depends(get_current_user_optional)
+):
 
-    profile = db["profile"].find_one({"_id": "user_profile"})
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    profile = db["profile"].find_one(
+        {"email": user["email"]}
+    )
 
     if not profile:
         return {
-            "name": "Security Analyst",
-            "email": "analyst@example.com"
+            "name": user["email"].split("@")[0],
+            "email": user["email"]
         }
 
     return {
-        "name": profile.get("name"),
-        "email": profile.get("email")
+        "name": profile.get("name", user["email"].split("@")[0]),
+        "email": user["email"]
     }
 
 # ---------------------------------------------------
