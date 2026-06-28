@@ -27,6 +27,4 @@ export const ENDPOINTS = {
   updateProfile: `${API_BASE_URL}/update-profile`,
   register: `${API_BASE_URL}/auth/register`,
   login: `${API_BASE_URL}/auth/login`,
-  me: `${API_BASE_URL}/auth/me`,
-  logout: `${API_BASE_URL}/auth/logout`,
 }
