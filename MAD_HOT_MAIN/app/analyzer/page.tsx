@@ -22,7 +22,7 @@ import {
   Database,
   CheckCircle2,
 } from "lucide-react"
-import { analyzePacket, uploadTrafficFile } from "@/lib/api"
+import { analyzePacket, fetchWithAuth, uploadTrafficFile } from "@/lib/api"
 import { ENDPOINTS } from "@/lib/config"
 
 const pipelineSteps = [
@@ -104,7 +104,7 @@ export default function AnalyzerPage() {
     let finished = false
 
     // start backend live session
-    await fetch(ENDPOINTS.startLive, {
+    await fetchWithAuth("/start-live", {
       method: "POST"
     })
 

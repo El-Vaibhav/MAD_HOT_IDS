@@ -31,7 +31,7 @@ AlertTriangle,
 CheckCircle2,
 ExternalLink,
 } from "lucide-react"
-import { ENDPOINTS } from "@/lib/config"
+import { fetchWithAuth } from "@/lib/api"
 
 export default function AccountPage() {
 
@@ -61,7 +61,7 @@ loadProfile()
 const loadProfile = async () => {
 try {
 
-const res = await fetch(ENDPOINTS.getProfile)
+const res = await fetchWithAuth("/get-profile")
 if (!res.ok) throw new Error(`Profile API failed: ${res.status}`)
 const data = await res.json()
 
@@ -76,7 +76,7 @@ console.error("Failed to load profile", err)
 const fetchAccountData = async () => {
 try {
 
-const res = await fetch(ENDPOINTS.accountData)
+const res = await fetchWithAuth("/account-data")
 if (!res.ok) throw new Error(`Account API failed: ${res.status}`)
 const data = await res.json()
 
@@ -98,10 +98,10 @@ console.error("Failed to load account data", err)
 const saveProfile = async () => {
 try {
 
-await fetch(ENDPOINTS.updateProfile, {
+await fetchWithAuth("/update-profile", {
 method: "POST",
 headers: { "Content-Type": "application/json" },
-body: JSON.stringify({ name, email })
+body: JSON.stringify({ name })
 })
 
 alert("Profile updated successfully")
