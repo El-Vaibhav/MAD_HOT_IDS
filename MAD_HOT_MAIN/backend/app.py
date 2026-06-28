@@ -17,7 +17,7 @@ from river.tree import HoeffdingTreeClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin
 from collections import Counter
 
-from db_mongo import save_packet, get_recent_packets
+from db_mongo import save_packet
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -31,8 +31,9 @@ import threading
 import json
 
 from auth.routes import router as auth_router
-from auth.dependencies import get_current_user_optional
-from fastapi import Depends
+from auth.utils import decode_token, ACCESS_TOKEN_COOKIE
+from auth.dependencies import get_current_user
+from fastapi import Depends, Query, WebSocketException, status
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR, ".env"))
@@ -52,29 +53,14 @@ client = MongoClient(MONGO_URI)
 db = client["ids_database"]   # database name
 collection = db["packets"]    # collection name
 
-LEGACY_PACKET_FILTER = {
-    "$or": [
-        {"user": None},
-        {"user": ""},
-        {"user": {"$exists": False}}
-    ]
-}
-
 SAFE_LABELS = {"Normal", "Normal Traffic", "Benign"}
 INTELLIGENCE_EXCLUDED_LABELS = {"Normal"}
 
 
 def get_user_filter(user):
-    if user and user.get("email"):
-        return {
-            "$or": [
-                {"user": user["email"]},
-                {"user": None},
-                {"user": ""},
-                {"user": {"$exists": False}}
-            ]
-        }
-    return LEGACY_PACKET_FILTER
+    if not user or not user.get("email"):
+        raise ValueError("Authenticated user is required")
+    return {"user": user["email"]}
 
 def serialize_packet(packet):
     packet["id"] = str(packet["_id"])   # convert ObjectId
@@ -429,7 +415,7 @@ def live_status():
     return {"live": live_session_active}
 
 @app.post("/start-live")
-def start_live():
+def start_live(user: dict = Depends(get_current_user)):
 
     global live_session_active, packet_counter, packets_to_log, last_sent
 
@@ -444,7 +430,7 @@ def start_live():
     return {"status": "started"}
 
 @app.post("/stop-live")
-def stop_live():
+def stop_live(user: dict = Depends(get_current_user)):
 
     global live_session_active
 
@@ -503,7 +489,7 @@ async def startup_event():
 @app.post("/analyze")
 def analyze_packet(
     data: PacketFeatures,
-    user: dict = Depends(get_current_user_optional)   # ✅ optional auth
+    user: dict = Depends(get_current_user)
 ):
 
     print("Received packet:", data)
@@ -559,7 +545,7 @@ def analyze_packet(
 
 @app.post("/upload")
 
-async def upload_file(file: UploadFile = File(...), user: dict = Depends(get_current_user_optional)):
+async def upload_file(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
 
     try:
 
@@ -724,9 +710,15 @@ async def upload_file(file: UploadFile = File(...), user: dict = Depends(get_cur
 # ---------------------------------------------------
 # Live Detection WebSocket
 @app.websocket("/ws/live-detection")
-async def live_detection_ws(websocket: WebSocket):
+async def live_detection_ws(websocket: WebSocket, token: str = Query(default="")):
 
     global live_session_active
+
+    token = token or websocket.cookies.get(ACCESS_TOKEN_COOKIE, "")
+    try:
+        decode_token(token)
+    except Exception:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION)
 
     print("WebSocket client connected")
 
@@ -749,7 +741,7 @@ async def live_detection_ws(websocket: WebSocket):
 # Attack Intelligence endpoint
 
 @app.get("/attack-intelligence")
-async def attack_intelligence(user: dict = Depends(get_current_user_optional)):
+async def attack_intelligence(user: dict = Depends(get_current_user)):
 
     filter_query = get_user_filter(user)
 
@@ -895,7 +887,7 @@ async def attack_intelligence(user: dict = Depends(get_current_user_optional)):
     }
 # Account section data endpoint
 @app.get("/account-data")
-def account_data(user: dict = Depends(get_current_user_optional)):
+def account_data(user: dict = Depends(get_current_user)):
 
     filter_query = get_user_filter(user)
 
@@ -965,19 +957,18 @@ from pydantic import BaseModel
 
 class ProfileUpdate(BaseModel):
     name: str
-    email: str
 
 @app.post("/update-profile")
-def update_profile(data: ProfileUpdate):
+def update_profile(data: ProfileUpdate, user: dict = Depends(get_current_user)):
 
     profile = {
-        "name": data.name,
-        "email": data.email,
-        "updated_at": datetime.now()
+        "name": data.name.strip() or "Security Analyst",
+        "email": user["email"],
+        "updated_at": datetime.utcnow()
     }
 
     db["profile"].update_one(
-        {"_id": "user_profile"},
+        {"email": user["email"]},
         {"$set": profile},
         upsert=True
     )
@@ -985,14 +976,14 @@ def update_profile(data: ProfileUpdate):
     return {"status": "success"}
 
 @app.get("/get-profile")
-def get_profile():
+def get_profile(user: dict = Depends(get_current_user)):
 
-    profile = db["profile"].find_one({"_id": "user_profile"})
+    profile = db["profile"].find_one({"email": user["email"]})
 
     if not profile:
         return {
             "name": "Security Analyst",
-            "email": "analyst@example.com"
+            "email": user["email"]
         }
 
     return {
@@ -1005,7 +996,7 @@ def get_profile():
 # ---------------------------------------------------
 
 @app.get("/recent-packets")
-def recent_packets(user: dict = Depends(get_current_user_optional)):
+def recent_packets(user: dict = Depends(get_current_user)):
 
     filter_query = get_user_filter(user)
 

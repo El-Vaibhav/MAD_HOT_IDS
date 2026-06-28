@@ -1,34 +1,48 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { ENDPOINTS } from "@/lib/config";
 
 const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useState<string | null>(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  const loadCurrentUser = async () => {
+    const response = await fetch(ENDPOINTS.me, {
+      credentials: "include",
+    });
 
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser(payload.email);
-      } catch {
-        localStorage.removeItem("token");
-      }
+    if (!response.ok) {
+      throw new Error("Invalid session");
     }
-  }, []);
 
-  const login = (token: string) => {
-    localStorage.setItem("token", token);
-
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    setUser(payload.email);
+    const profile = await response.json();
+    setUser(profile.email);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
+  useEffect(() => {
+    loadCurrentUser().catch(() => {
+      setUser(null);
+    });
+  }, []);
+
+  const login = async (email?: string) => {
+    if (email) {
+      setUser(email);
+      return;
+    }
+
+    try {
+      await loadCurrentUser();
+    } catch (error) {
+      setUser(null);
+      throw error;
+    }
+  };
+
+  const logout = async () => {
+    await fetch(ENDPOINTS.logout, { method: "POST", credentials: "include" });
     setUser(null);
   };
 
