@@ -10,11 +10,30 @@ router = APIRouter()
 
 MIN_PASSWORD_LENGTH = 12
 COMMON_PASSWORDS = {"password", "password123", "12345678", "123456789", "qwerty123"}
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
+COOKIE_SECURE = os.getenv("COOKIE_SECURE")
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE")
 
 # Simple in-memory rate limiter. Use Redis or another shared store for multi-instance production.
 _rate_limits = {}
+
+
+def _is_local_origin(origin: str) -> bool:
+    return "localhost" in origin or "127.0.0.1" in origin
+
+def _cookie_options(request: Request):
+    origin = request.headers.get("origin", "")
+
+    if COOKIE_SECURE is not None:
+        secure = COOKIE_SECURE.lower() == "true"
+    else:
+        secure = not _is_local_origin(origin)
+
+    if COOKIE_SAMESITE:
+        samesite = COOKIE_SAMESITE.lower()
+    else:
+        samesite = "lax" if _is_local_origin(origin) else "none"
+
+    return {"secure": secure, "samesite": samesite}
 
 def _client_key(request: Request, action: str) -> str:
     forwarded_for = request.headers.get("x-forwarded-for", "")
@@ -67,16 +86,17 @@ def login(user: UserLogin, request: Request, response: Response):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token({"sub": str(db_user["_id"]), "email": db_user["email"]})
+    cookie_options = _cookie_options(request)
     response.set_cookie(
         key=ACCESS_TOKEN_COOKIE,
         value=token,
         max_age=ACCESS_TOKEN_EXPIRE_HOURS * 60 * 60,
         httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
+        secure=cookie_options["secure"],
+        samesite=cookie_options["samesite"],
     )
 
-    return {"message": "Login successful"}
+    return {"message": "Login successful", "email": db_user["email"]}
 
 @router.get("/me")
 def me(user: dict = Depends(get_current_user)):
@@ -84,6 +104,11 @@ def me(user: dict = Depends(get_current_user)):
 
 
 @router.post("/logout")
-def logout(response: Response):
-    response.delete_cookie(ACCESS_TOKEN_COOKIE)
+def logout(request: Request, response: Response):
+    cookie_options = _cookie_options(request)
+    response.delete_cookie(
+        ACCESS_TOKEN_COOKIE,
+        secure=cookie_options["secure"],
+        samesite=cookie_options["samesite"],
+    )
     return {"message": "Logged out"}

@@ -27,7 +27,12 @@ export const AuthProvider = ({ children }: any) => {
     });
   }, []);
 
-  const login = async () => {
+  const login = async (email?: string) => {
+    if (email) {
+      setUser(email);
+      return;
+    }
+
     try {
       await loadCurrentUser();
     } catch (error) {

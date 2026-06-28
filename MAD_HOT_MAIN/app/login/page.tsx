@@ -41,7 +41,7 @@ export default function LoginPage() {
       }
 
       localStorage.removeItem(GUEST_KEY)
-      await login()
+      await login(data.email)
       router.push("/dashboard")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Could not reach the backend")
