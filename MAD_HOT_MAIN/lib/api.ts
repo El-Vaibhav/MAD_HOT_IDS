@@ -20,19 +20,17 @@ const API_BASE =
 export const fetchWithAuth = async (  url: string,
   options: RequestInit = {}
 ) => {
-  const token = localStorage.getItem("token");
   const requestUrl = /^https?:\/\//.test(url) ? url : `${API_BASE}${url}`;
 
   const res = await fetch(requestUrl, {
     ...options,
+    credentials: "include",
     headers: {
       ...(options.headers || {}),
-      ...(token && { Authorization: `Bearer ${token}` }),
     },
   });
 
   if (res.status === 401) {
-    localStorage.removeItem("token");
     window.location.href = "/login";
   }
 
