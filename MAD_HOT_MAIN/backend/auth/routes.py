@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from .schemas import UserCreate, UserLogin
 from .utils import hash_password, verify_password, create_access_token
 from db_mongo import users_collection
-import datetime
+from datetime import datetime
 
 router = APIRouter()
 
