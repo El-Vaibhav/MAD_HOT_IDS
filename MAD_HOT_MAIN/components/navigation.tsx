@@ -40,12 +40,15 @@ export function Navigation() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 
         {/* LOGO */}
-        <Link href="/" className="flex items-center gap-2">
+        <Link
+          href="/"
+          className="mr-8 flex min-w-[190px] items-center gap-3 shrink-0 whitespace-nowrap"
+        >
           <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Shield className="h-5 w-5 text-primary-foreground" />
             <div className="absolute inset-0 rounded-lg bg-primary/50 blur-sm" />
           </div>
-          <span className="text-xl font-bold tracking-tight hidden sm:inline">
+          <span className="hidden sm:inline whitespace-nowrap text-lg font-bold tracking-tight">
             MAD-HOT <span className="text-primary">IDS</span>
           </span>
         </Link>
@@ -56,7 +59,7 @@ export function Navigation() {
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="rounded-md px-2 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               {item.label}
             </Link>
@@ -85,7 +88,7 @@ export function Navigation() {
               className="gap-2 border-primary text-primary hover:bg-primary/10 min-w-[100px] justify-center"
             >
               <User className="h-4 w-4" />
-              {user ? "Account" : "Login"}
+              {user ? user.name : "Login"}
             </Button>
 
           </Link>
@@ -156,7 +159,7 @@ export function Navigation() {
                   <Link href={user ? "/account" : "/login"} onClick={() => setIsOpen(false)}>
                     <Button className="w-full gap-2 glow-cyan">
                       <User className="h-4 w-4" />
-                      {user ? "Account" : "Login"}
+                      {user ? user.name : "Login"}
                     </Button>
                   </Link>
 

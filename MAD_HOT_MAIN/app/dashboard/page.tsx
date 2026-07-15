@@ -153,6 +153,7 @@ export default function DashboardPage() {
     "91.234.55.107": { country: "Russia", lat: 61.524, lng: 105.3188 },
     "103.75.190.88": { country: "Hong Kong", lat: 22.3193, lng: 114.1694 },
   }
+  const [queueExpanded, setQueueExpanded] = useState(false)
 
   const handleRefresh = () => {
 
@@ -280,8 +281,15 @@ export default function DashboardPage() {
 
       setAlerts(newAlerts)
 
-      if (newAlerts.length > 0)
-        setSelectedAlert(newAlerts[0])
+      setSelectedAlert((prev) => {
+        // First load
+        if (!prev) return newAlerts[0] ?? null
+
+        // Keep currently selected alert if it still exists
+        const existing = newAlerts.find((a) => a.id === prev.id)
+
+        return existing ?? newAlerts[0] ?? null
+      })
 
 
       /* ---------- CONNECTIONS ---------- */
@@ -642,7 +650,7 @@ export default function DashboardPage() {
             )}
             {user && (
               <p className="text-green-400 text-xs mt-1">
-                Logged in as {user}
+                Logged in as {user.name}
               </p>
             )}
             <p className="text-sm text-muted-foreground">
@@ -673,58 +681,70 @@ export default function DashboardPage() {
         {/* Main 3-Column Layout */}
         <div className="grid gap-4 lg:grid-cols-12">
           {/* Left Column - Alert Queue */}
-          <div className="lg:col-span-3">
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    Alert Queue
-                  </CardTitle>
-                  <span className="text-2xl font-bold text-foreground">{alerts.length}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ScrollArea className="h-[600px]">
-                  <div className="space-y-1 p-2">
-                    {alerts.map((alert) => (
-                      <button
-                        key={alert.id}
-                        onClick={() => setSelectedAlert(alert)}
-                        className={`w-full text-left rounded-lg border-l-4 p-3 transition-all hover:bg-secondary/50 ${getSeverityBorderColor(alert.severity)
-                          } ${selectedAlert?.id === alert.id
-                            ? "bg-secondary/70 ring-1 ring-primary/50"
-                            : "bg-card/30"
-                          }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <Badge className={`text-[10px] uppercase ${getSeverityColor(alert.severity)}`}>
-                            {alert.severity}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {alert.timestamp.toLocaleTimeString("en-US", { hour12: false })}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-sm font-medium text-foreground">{alert.type}</p>
-                        <p className="mt-1 font-mono text-xs text-muted-foreground">
-                          {alert.source} → {alert.target}
-                        </p>
-                        <p className="mt-1 text-xs text-primary">
-                          {alert.confidence.toFixed(1)}% <span className="text-muted-foreground">{alert.id}</span>
-                        </p>
-                      </button>
-                    ))}
+
+          {alerts.length > 0 && (
+
+            <div
+              className={`transition-all duration-300 ${queueExpanded ? "lg:col-span-3" : "lg:col-span-2"
+                }`}
+            >
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      Alert Queue
+                    </CardTitle>
+                    <span className="text-2xl font-bold text-foreground">{alerts.length}</span>
                   </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[600px]">
+                    <div className="space-y-1 p-2">
+                      {alerts.map((alert) => (
+                        <button
+                          key={alert.id}
+                          onClick={() => setSelectedAlert(alert)}
+                          className={`w-full text-left rounded-lg border-l-4 p-3 transition-all hover:bg-secondary/50 ${getSeverityBorderColor(alert.severity)
+                            } ${selectedAlert?.id === alert.id
+                              ? "bg-secondary/70 ring-1 ring-primary/50"
+                              : "bg-card/30"
+                            }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <Badge className={`text-[10px] uppercase ${getSeverityColor(alert.severity)}`}>
+                              {alert.severity}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {alert.timestamp.toLocaleTimeString("en-US", { hour12: false })}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-sm font-medium text-foreground">{alert.type}</p>
+                          <p className="mt-1 font-mono text-xs text-muted-foreground">
+                            {alert.source} → {alert.target}
+                          </p>
+                          <p className="mt-1 text-xs text-primary">
+                            {alert.confidence.toFixed(1)}% <span className="text-muted-foreground">{alert.id}</span>
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Center Column - Live View */}
-          <div className="lg:col-span-6 space-y-4">
+          <div
+            className={`space-y-4 ${alerts.length > 0
+              ? (queueExpanded ? "lg:col-span-6" : "lg:col-span-7")
+              : "lg:col-span-9"
+              }`}
+          >
             {selectedAlert ? (
               <>
                 {/* Attack Header */}
-                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm ">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-xs text-primary mb-2">
                       <Radio className="h-3 w-3 animate-pulse" />
@@ -951,17 +971,23 @@ export default function DashboardPage() {
 
                       <div>
                         <h2 className="text-2xl font-bold text-green-400">
-                          Network Secure
+                          All Security Systems Operational
                         </h2>
 
                         <p className="text-muted-foreground">
-                          No threats detected. IDS is actively monitoring traffic.
+                          No active intrusion attempts detected. The IDS is continuously monitoring network traffic in real time.
                         </p>
                       </div>
 
-                      <Badge className="ml-auto bg-green-500/20 text-green-400 border-green-500/30">
-                        HEALTHY
-                      </Badge>
+                      <div className="ml-auto text-right">
+                        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                          HEALTHY
+                        </Badge>
+
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Last Health Check • Just now
+                        </p>
+                      </div>
 
                     </div>
 
@@ -998,13 +1024,19 @@ export default function DashboardPage() {
                       </div>
 
                       <div>
-                        <p className="text-xs uppercase text-muted-foreground">
-                          Monitoring
-                        </p>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">
+                            Last Threat
+                          </p>
 
-                        <p className="text-2xl font-bold text-cyan-400">
-                          LIVE
-                        </p>
+                          <p className="text-xl font-bold text-green-400">
+                            None
+                          </p>
+
+                          <p className="text-xs text-muted-foreground">
+                            Current Session
+                          </p>
+                        </div>
                       </div>
 
                     </div>
@@ -1017,38 +1049,36 @@ export default function DashboardPage() {
                   <Card className="border-green-500/20 bg-card/50 backdrop-blur-sm">
 
                     <CardHeader>
-
                       <CardTitle className="text-sm uppercase tracking-wider">
                         Network Health
                       </CardTitle>
-
                     </CardHeader>
 
-                    <CardContent>
+                    <CardContent className="space-y-4">
 
-                      <ul className="space-y-3">
+                      {[
+                        "Traffic volume within normal baseline",
+                        "No malicious signatures detected",
+                        "No abnormal connection behavior observed",
+                        "Packet flow operating within expected thresholds",
+                        "Intrusion Detection Engine operational",
+                      ].map((item) => (
+                        <div
+                          key={item}
+                          className="flex items-center justify-between border-b border-border/30 pb-2 last:border-none last:pb-0"
+                        >
+                          <span className="text-sm text-foreground">
+                            {item}
+                          </span>
 
-                        <li className="text-green-400">
-                          ✓ No attack signatures detected
-                        </li>
-
-                        <li className="text-green-400">
-                          ✓ Traffic follows normal baseline
-                        </li>
-
-                        <li className="text-green-400">
-                          ✓ No suspicious IP activity
-                        </li>
-
-                        <li className="text-green-400">
-                          ✓ Packet flow is stable
-                        </li>
-
-                        <li className="text-green-400">
-                          ✓ IDS engine operating normally
-                        </li>
-
-                      </ul>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-xs text-green-400">
+                              OK
+                            </span>
+                          </div>
+                        </div>
+                      ))}
 
                     </CardContent>
 
@@ -1064,29 +1094,102 @@ export default function DashboardPage() {
 
                     </CardHeader>
 
-                    <CardContent>
+                    <CardContent className="space-y-4">
 
-                      <ul className="space-y-3">
+                      {[
+                        ["Firewall Policies", "Active"],
+                        ["Detection Engine", "Online"],
+                        ["Signature Database", "Updated"],
+                        ["Traffic Inspection", "Running"],
+                        ["Security Logs", "Healthy"],
+                      ].map(([label, value]) => (
 
-                        <li>🟢 Continue monitoring traffic</li>
+                        <div
+                          key={label}
+                          className="flex items-center justify-between border-b border-border/30 pb-2 last:border-none last:pb-0"
+                        >
+                          <span className="text-sm text-muted-foreground">
+                            {label}
+                          </span>
 
-                        <li>🟢 Firewall is functioning normally</li>
+                          <span className="text-sm font-medium text-green-400">
+                            {value}
+                          </span>
 
-                        <li>🟢 All detection engines active</li>
+                        </div>
 
-                        <li>🟢 No mitigation required</li>
-
-                        <li>🟢 System operating securely</li>
-
-                      </ul>
+                      ))}
 
                     </CardContent>
 
                   </Card>
 
                 </div>
+                <Card className="mt-4 border-border/50 bg-card/50 backdrop-blur-sm">
+
+                  <CardHeader>
+                    <CardTitle className="text-sm uppercase tracking-wider">
+                      Monitoring Summary
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent>
+
+                    <p className="text-sm leading-7 text-muted-foreground">
+                      No Indicators of Compromise (IoCs) have been detected during the
+                      current monitoring session. Network traffic characteristics remain
+                      consistent with the established baseline, and all IDS detection
+                      modules are actively inspecting inbound and outbound traffic.
+                    </p>
+
+                  </CardContent>
+
+                </Card>
+                <Card className="mt-4 border-border/50 bg-card/50 backdrop-blur-sm">
+
+                  <CardHeader>
+                    <CardTitle className="text-sm uppercase tracking-wider">
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="space-y-4">
+
+                    {[
+                      "Traffic baseline verified",
+                      "Signature database synchronized",
+                      "Flow monitoring active",
+                      "Packet inspection completed",
+                      "No anomalies detected",
+                    ].map((event, index) => (
+
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+
+                          <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+
+                          <span className="text-sm">
+                            {event}
+                          </span>
+
+                        </div>
+
+                        <span className="text-xs text-muted-foreground">
+                          Just now
+                        </span>
+
+                      </div>
+
+                    ))}
+
+                  </CardContent>
+
+                </Card>
               </>
-               )}
+            )}
           </div>
 
           {/* Right Column - System Risk */}
@@ -1157,259 +1260,270 @@ export default function DashboardPage() {
             </Card>
 
             {/* Protocol Distribution */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Protocol Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 w-full rounded-full bg-secondary overflow-hidden flex">
-                  {protocolData.map((proto, i) => (
-                    <div
-                      key={proto.name}
-                      className="h-full"
-                      style={{
-                        width: `${proto.value}%`,
-                        backgroundColor: protocolColors[proto.name] || "#888",
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  {protocolData.map((proto) => (
-                    <div key={proto.name} className="flex items-center gap-2">
-                      <div
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: protocolColors[proto.name] || "#888" }}
-                      />
-                      <span className="text-foreground">{proto.name}</span>
-                      <span className="text-muted-foreground">{proto.value}%</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {protocolData.length > 0 && (
 
-            {/* Top Sources */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Top Sources
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {topSources.map((source) => (
-                    <div key={source.ip} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    Protocol Distribution
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-3 w-full rounded-full bg-secondary overflow-hidden flex">
+                    {protocolData.map((proto, i) => (
+                      <div
+                        key={proto.name}
+                        className="h-full"
+                        style={{
+                          width: `${proto.value}%`,
+                          backgroundColor: protocolColors[proto.name] || "#888",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    {protocolData.map((proto) => (
+                      <div key={proto.name} className="flex items-center gap-2">
                         <div
                           className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: source.color }}
+                          style={{ backgroundColor: protocolColors[proto.name] || "#888" }}
                         />
-                        <span className="font-mono text-foreground">{source.ip}</span>
+                        <span className="text-foreground">{proto.name}</span>
+                        <span className="text-muted-foreground">{proto.value}%</span>
                       </div>
-                      <span className="text-muted-foreground">{source.location}, {source.country}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-xs">
-                  <div className="h-2 w-2 rounded-full bg-cyber-success animate-pulse" />
-                  <span className="text-cyber-success">STREAM CONNECTED</span>
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {topSources.length > 0 && (
+
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    Top Sources
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {topSources.map((source) => (
+                      <div key={source.ip} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: source.color }}
+                          />
+                          <span className="font-mono text-foreground">{source.ip}</span>
+                        </div>
+                        <span className="text-muted-foreground">{source.location}, {source.country}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex items-center gap-2 text-xs">
+                    <div className="h-2 w-2 rounded-full bg-cyber-success animate-pulse" />
+                    <span className="text-cyber-success">STREAM CONNECTED</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
         {/* Bottom Section - Original Dashboard Features */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          {/* Live Packet Monitor */}
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm lg:col-span-2">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Activity className="h-5 w-5 text-primary" />
-                Live Packet Monitor
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={packetData}>
-                    <defs>
-                      <linearGradient id="colorInbound" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorOutbound" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                        color: "hsl(var(--foreground))",
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="outbound"
-                      stroke="#22c55e"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorOutbound)"
-                      name="Outbound"
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                      isAnimationActive={true}
-                      animationDuration={800}
-                      animationEasing="ease-out"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="inbound"
-                      stroke="#00d4ff"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorInbound)"
-                      name="Inbound"
-                      dot={false}
-                      activeDot={{ r: 4 }}
-                      isAnimationActive={true}
-                      animationDuration={800}
-                      animationEasing="ease-out"
-                    />
+        {packetData.length > 0 && (
 
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 flex justify-center gap-6">
-                <div className="flex items-center gap-2">
-                  <ArrowDownRight className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">Inbound</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUpRight className="h-4 w-4 text-cyber-success" />
-                  <span className="text-sm text-muted-foreground">Outbound</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            {/* Live Packet Monitor */}
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Activity className="h-5 w-5 text-primary" />
+                  Live Packet Monitor
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={packetData}>
+                      <defs>
+                        <linearGradient id="colorInbound" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorOutbound" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          color: "hsl(var(--foreground))",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="outbound"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorOutbound)"
+                        name="Outbound"
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                        isAnimationActive={true}
+                        animationDuration={800}
+                        animationEasing="ease-out"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="inbound"
+                        stroke="#00d4ff"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#colorInbound)"
+                        name="Inbound"
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                        isAnimationActive={true}
+                        animationDuration={800}
+                        animationEasing="ease-out"
+                      />
 
-          {/* Protocol Pie Chart */}
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Globe className="h-5 w-5 text-primary" />
-                Protocol Breakdown
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={protocolData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={40}
-                      outerRadius={70}
-                      paddingAngle={3}
-                      dataKey="value"
-                      nameKey="name"
-                      isAnimationActive={true}
-                      animationDuration={800}
-                    >
-                      {protocolData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={protocolColors[entry.name] || "#888"}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                        color: "hsl(var(--foreground))",
-                        padding: "8px 12px",
-                      }}
-                      itemStyle={{
-                        color: "hsl(var(--foreground))",
-                      }}
-                      labelStyle={{
-                        color: "hsl(var(--foreground))",
-                        fontWeight: "bold",
-                        marginBottom: "4px",
-                      }}
-                      formatter={(value: number, name: string) => [`${value}%`, name]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-2 flex flex-wrap justify-center gap-3">
-                {protocolData.map((item) => (
-                  <div key={item.name} className="flex items-center gap-1">
-                    <div
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: protocolColors[item.name] || "#888" }}
-                    />
-                    <span className="text-xs text-foreground">{item.name}</span>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 flex justify-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <ArrowDownRight className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-muted-foreground">Inbound</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  <div className="flex items-center gap-2">
+                    <ArrowUpRight className="h-4 w-4 text-cyber-success" />
+                    <span className="text-sm text-muted-foreground">Outbound</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Protocol Pie Chart */}
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Globe className="h-5 w-5 text-primary" />
+                  Protocol Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={protocolData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={70}
+                        paddingAngle={3}
+                        dataKey="value"
+                        nameKey="name"
+                        isAnimationActive={true}
+                        animationDuration={800}
+                      >
+                        {protocolData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={protocolColors[entry.name] || "#888"}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          color: "hsl(var(--foreground))",
+                          padding: "8px 12px",
+                        }}
+                        itemStyle={{
+                          color: "hsl(var(--foreground))",
+                        }}
+                        labelStyle={{
+                          color: "hsl(var(--foreground))",
+                          fontWeight: "bold",
+                          marginBottom: "4px",
+                        }}
+                        formatter={(value: number, name: string) => [`${value}%`, name]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-2 flex flex-wrap justify-center gap-3">
+                  {protocolData.map((item) => (
+                    <div key={item.name} className="flex items-center gap-1">
+                      <div
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: protocolColors[item.name] || "#888" }}
+                      />
+                      <span className="text-xs text-foreground">{item.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Active Connections Table */}
-        <Card className="mt-6 border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Server className="h-5 w-5 text-primary" />
-                Active Connections
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs">Source</TableHead>
-                  <TableHead className="text-xs">Destination</TableHead>
-                  <TableHead className="text-xs">Protocol</TableHead>
-                  <TableHead className="text-xs">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {connections.map((conn) => (
-                  <TableRow key={conn.id}>
-                    <TableCell className="font-mono text-xs">{conn.sourceIp}</TableCell>
-                    <TableCell className="font-mono text-xs">{conn.destIp}:{conn.port}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {conn.protocol}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(conn.status)}>
-                        {conn.status}
-                      </Badge>
-                    </TableCell>
+        {connections.length > 0 && (
+
+          <Card className="mt-6 border-border/50 bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Server className="h-5 w-5 text-primary" />
+                  Active Connections
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Source</TableHead>
+                    <TableHead className="text-xs">Destination</TableHead>
+                    <TableHead className="text-xs">Protocol</TableHead>
+                    <TableHead className="text-xs">Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {connections.map((conn) => (
+                    <TableRow key={conn.id}>
+                      <TableCell className="font-mono text-xs">{conn.sourceIp}</TableCell>
+                      <TableCell className="font-mono text-xs">{conn.destIp}:{conn.port}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {conn.protocol}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(conn.status)}>
+                          {conn.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
 
       </div>
     </main>

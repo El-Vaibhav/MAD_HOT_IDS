@@ -1,31 +1,49 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: any) => {
-  const [user, setUser] = useState<string | null>(null);
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+  } | null>(null);
+
+  const loadProfile = async (token: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/get-profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const profile = await response.json();
+
+      setUser(profile);
+    } catch {
+      localStorage.removeItem("token");
+      setUser(null);
+    }
+  };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser(payload.email);
-      } catch {
-        localStorage.removeItem("token");
-      }
-    }
-  }, []);
+  if (token) {
+    loadProfile(token);
+  }
+}, []);
 
-  const login = (token: string) => {
-    localStorage.setItem("token", token);
-
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    setUser(payload.email);
-  };
+  const login = async (token: string) => {
+  localStorage.setItem("token", token);
+  await loadProfile(token);
+};
 
   const logout = () => {
     localStorage.removeItem("token");

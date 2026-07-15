@@ -64,6 +64,11 @@ export default function IntelligencePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [legacyAccess, setLegacyAccess] = useState(false)
+  const hasIntelligenceData =
+    attackTypeData.length > 0 ||
+    attackDistribution.length > 0 ||
+    trendData.length > 0 ||
+    recentThreats.length > 0
 
   const [stats, setStats] = useState({
     total_attacks: 0,
@@ -160,7 +165,7 @@ export default function IntelligencePage() {
 
           {user && (
             <p className="mt-3 text-xs text-green-400">
-              Logged in as {user}.{" "}
+              Logged in as {user.name}.{" "}
               {legacyAccess
                 ? "Showing your intelligence data with legacy baseline records."
                 : "Showing your personal attack intelligence."}
@@ -170,10 +175,11 @@ export default function IntelligencePage() {
 
 
         {/* Stats */}
+
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
           {[
-            { label: "Total Attacks Detected", value: stats.total_attacks, icon: AlertTriangle, color: "text-destructive" },
+            { label: "Total Packets Detected", value: stats.total_attacks, icon: AlertTriangle, color: "text-destructive" },
             { label: "Attack Types Identified", value: stats.attack_types, icon: Target, color: "text-primary" },
             { label: "Detection Rate", value: `${stats.detection_rate}%`, icon: TrendingUp, color: "text-green-500" },
             { label: "Avg Response Time", value: `${stats.response_time} ms`, icon: Clock, color: "text-yellow-500" },
@@ -200,22 +206,178 @@ export default function IntelligencePage() {
 
         </div>
 
+        {!hasIntelligenceData && (
+
+          <Card className="mb-8 border-primary/20 bg-card/50 backdrop-blur-sm">
+
+            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+
+              <Shield className="mb-6 h-14 w-14 text-primary opacity-70" />
+
+              <h2 className="text-2xl font-semibold">
+                No Attack Intelligence Available
+              </h2>
+
+              <p className="mt-3 max-w-xl text-muted-foreground">
+                No intrusion events have been detected for this account yet.
+                Once traffic is analyzed and attacks are detected, intelligence
+                reports, trends, and threat analytics will appear here.
+              </p>
+
+            </CardContent>
+
+          </Card>
+
+        )}
+
 
         {/* Attack Types */}
-        <div className="mb-8 grid gap-6 lg:grid-cols-2">
+        {attackTypeData.length > 0 && attackDistribution.length > 0 && (
+
+          <div className="mb-8 grid gap-6 lg:grid-cols-2">
 
 
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Most Common Attack Types
+                </CardTitle>
+
+                <CardDescription>
+                  Attack frequency by category
+                </CardDescription>
+
+              </CardHeader>
+
+
+              <CardContent>
+
+                <div className="h-80">
+
+                  <ResponsiveContainer width="100%" height="100%">
+
+                    <BarChart data={attackTypeData} layout="vertical">
+
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+
+                      <XAxis type="number" stroke="#888" fontSize={12} />
+
+                      <YAxis type="category" dataKey="name" stroke="#888" fontSize={11} width={120} />
+
+                      <Tooltip />
+
+                      <Bar
+                        dataKey="count"
+                        radius={[0, 4, 4, 0]}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
+                      >
+
+                        {attackTypeData.map((entry, index) => (
+                          <Cell key={index} fill={entry.color || "#ef4444"} />
+                        ))}
+
+                      </Bar>
+
+                    </BarChart>
+
+                  </ResponsiveContainer>
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+
+            {/* Attack Distribution */}
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+
+              <CardHeader>
+
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Attack Distribution
+                </CardTitle>
+                <CardDescription>
+                  Breakdown of attack categories by percentage
+                </CardDescription>
+
+              </CardHeader>
+
+              <CardContent>
+
+                <div className="h-64">
+
+                  <ResponsiveContainer width="100%" height="100%">
+
+                    <PieChart>
+
+                      <Pie
+                        data={attackDistribution}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={4}
+                        label={renderPieLabel}
+                        labelLine={false}
+                        animationDuration={1200}
+                        animationBegin={200}
+                      >
+
+                        {attackDistribution.map((entry, index) => (
+                          <Cell key={index} fill={pieColors[index % pieColors.length]} />
+                        ))}
+
+                      </Pie>
+
+                      <Tooltip />
+
+                    </PieChart>
+
+                  </ResponsiveContainer>
+
+                  <div className="mt-4 flex flex-wrap justify-center gap-4">
+                    {attackDistribution.map((item, i) => (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: pieColors[i % pieColors.length] }}
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          {item.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+
+              </CardContent>
+
+            </Card>
+
+
+          </div>
+        )}
+
+
+        {/* Trend Graph */}
+        {trendData.length > 0 && (
+
+          <Card className="mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
 
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                Most Common Attack Types
-              </CardTitle>
 
-              <CardDescription>
-                Attack frequency by category
-              </CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Traffic Anomaly Trends
+              </CardTitle>
 
             </CardHeader>
 
@@ -226,30 +388,31 @@ export default function IntelligencePage() {
 
                 <ResponsiveContainer width="100%" height="100%">
 
-                  <BarChart data={attackTypeData} layout="vertical">
+                  <AreaChart data={trendData}>
 
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <CartesianGrid strokeDasharray="3 3" />
 
-                    <XAxis type="number" stroke="#888" fontSize={12} />
+                    <XAxis dataKey="day" />
 
-                    <YAxis type="category" dataKey="name" stroke="#888" fontSize={11} width={120} />
+                    <YAxis />
 
                     <Tooltip />
 
-                    <Bar
-                      dataKey="count"
-                      radius={[0, 4, 4, 0]}
-                      animationDuration={1200}
-                      animationEasing="ease-out"
-                    >
+                    <Area
+                      type="monotone"
+                      dataKey="attacks"
+                      stroke="#ef4444"
+                      fill="#ef444433"
+                    />
 
-                      {attackTypeData.map((entry, index) => (
-                        <Cell key={index} fill={entry.color || "#ef4444"} />
-                      ))}
+                    <Area
+                      type="monotone"
+                      dataKey="blocked"
+                      stroke="#22c55e"
+                      fill="#22c55e33"
+                    />
 
-                    </Bar>
-
-                  </BarChart>
+                  </AreaChart>
 
                 </ResponsiveContainer>
 
@@ -258,133 +421,7 @@ export default function IntelligencePage() {
             </CardContent>
 
           </Card>
-
-
-          {/* Attack Distribution */}
-          <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-
-            <CardHeader>
-
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Attack Distribution
-              </CardTitle>
-              <CardDescription>
-                Breakdown of attack categories by percentage
-              </CardDescription>
-
-            </CardHeader>
-
-            <CardContent>
-
-              <div className="h-64">
-
-                <ResponsiveContainer width="100%" height="100%">
-
-                  <PieChart>
-
-                    <Pie
-                      data={attackDistribution}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={4}
-                      label={renderPieLabel}
-                      labelLine={false}
-                      animationDuration={1200}
-                      animationBegin={200}
-                    >
-
-                      {attackDistribution.map((entry, index) => (
-                        <Cell key={index} fill={pieColors[index % pieColors.length]} />
-                      ))}
-
-                    </Pie>
-
-                    <Tooltip />
-
-                  </PieChart>
-
-                </ResponsiveContainer>
-
-                <div className="mt-4 flex flex-wrap justify-center gap-4">
-                  {attackDistribution.map((item, i) => (
-                    <div key={item.name} className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: pieColors[i % pieColors.length] }}
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {item.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-              </div>
-
-            </CardContent>
-
-          </Card>
-
-        </div>
-
-
-        {/* Trend Graph */}
-        <Card className="mb-8 border-border/50 bg-card/50 backdrop-blur-sm">
-
-          <CardHeader>
-
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              Traffic Anomaly Trends
-            </CardTitle>
-
-          </CardHeader>
-
-
-          <CardContent>
-
-            <div className="h-80">
-
-              <ResponsiveContainer width="100%" height="100%">
-
-                <AreaChart data={trendData}>
-
-                  <CartesianGrid strokeDasharray="3 3" />
-
-                  <XAxis dataKey="day" />
-
-                  <YAxis />
-
-                  <Tooltip />
-
-                  <Area
-                    type="monotone"
-                    dataKey="attacks"
-                    stroke="#ef4444"
-                    fill="#ef444433"
-                  />
-
-                  <Area
-                    type="monotone"
-                    dataKey="blocked"
-                    stroke="#22c55e"
-                    fill="#22c55e33"
-                  />
-
-                </AreaChart>
-
-              </ResponsiveContainer>
-
-            </div>
-
-          </CardContent>
-
-        </Card>
+        )}
 
 
         {/* Regions + Recent Threats */}
@@ -393,97 +430,101 @@ export default function IntelligencePage() {
 
 
           {/* Recent Threats */}
-          <Card>
+          {recentThreats.length > 0 && (
 
-            <CardHeader>
+            <Card>
 
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                Recent Threat Activity
-              </CardTitle>
+              <CardHeader>
 
-            </CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  Recent Threat Activity
+                </CardTitle>
 
-
-            <CardContent className="p-0">
-
-              <Table>
-
-                <TableHeader>
-
-                  <TableRow>
-
-                    <TableHead>Type</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Time</TableHead>
-
-                  </TableRow>
-
-                </TableHeader>
+              </CardHeader>
 
 
-                <TableBody>
-                  {recentThreats.map((threat, index) => {
+              <CardContent className="p-0">
 
-                    const formatTime = (timestamp: any) => {
-                      if (!timestamp) return "just now"
+                <Table>
 
-                      const date = new Date(timestamp)
-                      const diff = Date.now() - date.getTime()
+                  <TableHeader>
 
-                      const minutes = Math.floor(diff / 60000)
+                    <TableRow>
 
-                      if (minutes < 1) return "just now"
-                      if (minutes < 60) return `${minutes} min ago`
-                      return `${Math.floor(minutes / 60)} hour ago`
-                    }
+                      <TableHead>Type</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead>Severity</TableHead>
+                      <TableHead>Time</TableHead>
 
-                    return (
+                    </TableRow>
 
-                      <TableRow key={index}>
+                  </TableHeader>
 
-                        <TableCell>
-                          {threat.type || "Unknown"}
-                        </TableCell>
 
-                        <TableCell className="font-mono text-xs">
-                          {threat.source || "unknown"}
-                        </TableCell>
+                  <TableBody>
+                    {recentThreats.map((threat, index) => {
 
-                        <TableCell>
+                      const formatTime = (timestamp: any) => {
+                        if (!timestamp) return "just now"
 
-                          <Badge
-                            className={
-                              threat.severity === "critical"
-                                ? "bg-red-500"
-                                : threat.severity === "high"
-                                  ? "bg-orange-500"
-                                  : threat.severity === "medium"
-                                    ? "bg-yellow-500"
-                                    : "bg-yellow-400"
-                            }
-                          >
-                            {threat.severity || "low"}
-                          </Badge>
+                        const date = new Date(timestamp)
+                        const diff = Date.now() - date.getTime()
 
-                        </TableCell>
+                        const minutes = Math.floor(diff / 60000)
 
-                        <TableCell>
-                          {formatTime(threat.time)}
-                        </TableCell>
+                        if (minutes < 1) return "just now"
+                        if (minutes < 60) return `${minutes} min ago`
+                        return `${Math.floor(minutes / 60)} hour ago`
+                      }
 
-                      </TableRow>
+                      return (
 
-                    )
-                  })}
-                </TableBody>
+                        <TableRow key={index}>
 
-              </Table>
+                          <TableCell>
+                            {threat.type || "Unknown"}
+                          </TableCell>
 
-            </CardContent>
+                          <TableCell className="font-mono text-xs">
+                            {threat.source || "unknown"}
+                          </TableCell>
 
-          </Card>
+                          <TableCell>
+
+                            <Badge
+                              className={
+                                threat.severity === "critical"
+                                  ? "bg-red-500"
+                                  : threat.severity === "high"
+                                    ? "bg-orange-500"
+                                    : threat.severity === "medium"
+                                      ? "bg-yellow-500"
+                                      : "bg-yellow-400"
+                              }
+                            >
+                              {threat.severity || "low"}
+                            </Badge>
+
+                          </TableCell>
+
+                          <TableCell>
+                            {formatTime(threat.time)}
+                          </TableCell>
+
+                        </TableRow>
+
+                      )
+                    })}
+                  </TableBody>
+
+                </Table>
+
+              </CardContent>
+
+            </Card>
+
+          )}
 
         </div>
 
