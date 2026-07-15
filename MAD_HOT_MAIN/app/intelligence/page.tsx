@@ -366,7 +366,6 @@ export default function IntelligencePage() {
           </div>
         )}
 
-
         {/* Trend Graph */}
         {trendData.length > 0 && (
 
@@ -443,7 +442,6 @@ export default function IntelligencePage() {
 
               </CardHeader>
 
-
               <CardContent className="p-0">
 
                 <Table>
@@ -460,7 +458,6 @@ export default function IntelligencePage() {
                     </TableRow>
 
                   </TableHeader>
-
 
                   <TableBody>
                     {recentThreats.map((threat, index) => {
@@ -495,15 +492,17 @@ export default function IntelligencePage() {
                             <Badge
                               className={
                                 threat.severity === "critical"
-                                  ? "bg-red-500"
+                                  ? "bg-red-500 text-white"
                                   : threat.severity === "high"
-                                    ? "bg-orange-500"
+                                    ? "bg-orange-500 text-white"
                                     : threat.severity === "medium"
-                                      ? "bg-yellow-500"
-                                      : "bg-yellow-400"
+                                      ? "bg-yellow-500 text-black"
+                                      : threat.severity === "safe"
+                                        ? "bg-green-500 text-white"
+                                        : "bg-gray-500 text-white"
                               }
                             >
-                              {threat.severity || "low"}
+                              {threat.severity}
                             </Badge>
 
                           </TableCell>

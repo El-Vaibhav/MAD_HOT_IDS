@@ -804,12 +804,17 @@ async def attack_intelligence(user: dict = Depends(get_current_user_optional)):
             seen.add(key)
 
             recent.append({
-                "id": len(recent) + 1,
-                "type": label,
-                "source": source,
-                "severity": "high",
-                "time": p.get("timestamp", "now")
-            })
+    "id": len(recent) + 1,
+    "type": label,
+    "source": source,
+    "severity": (
+        "safe" if label in SAFE_LABELS
+        else "medium" if label in ["PortScan", "Probe"]
+        else "high" if label in ["DoS", "Brute Force", "Web Attack"]
+        else "critical"
+    ),
+    "time": p.get("timestamp", "now")
+})
     # -----------------------------
     # Attack type colors
     # -----------------------------
@@ -909,11 +914,27 @@ async def attack_intelligence(user: dict = Depends(get_current_user_optional)):
     # -----------------------------
     # Final response
     # -----------------------------
+    # -----------------------------
+# Detection Rate
+# -----------------------------
+
+# -----------------------------
+# Average Detection Confidence
+# -----------------------------
+
+    confidences = [
+    p.get("confidence", 0)
+    for p in packets
+    if p.get("confidence") is not None]
+
+    detection_rate = round(
+    (sum(confidences) / len(confidences)) * 100,
+    2) if confidences else 0
 
     return {
     "total_attacks": sum(attack_counts.values()),
     "attack_types_count": len(attack_counts),
-    "detection_rate": 99.2,
+    "detection_rate": detection_rate,
     "avg_response_time": 0.8,
     "attack_types": attack_types,
     "attack_distribution": attack_distribution,

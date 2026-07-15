@@ -93,7 +93,7 @@ interface Connection {
   destIp: string
   protocol: string
   port: number
-  status: "active" | "suspicious" | "blocked"
+  status: "safe" | "suspicious" | "blocked"
   bytes: number
 }
 
@@ -296,7 +296,7 @@ export default function DashboardPage() {
 
       const conns: Connection[] = uniquePackets.slice(0, 15).map((p, i) => {
 
-        let status: Connection["status"] = "active"
+        let status: Connection["status"] = "safe"
 
         if (
           p.prediction !== "Benign" &&
@@ -605,7 +605,7 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: Connection["status"]) => {
     switch (status) {
-      case "active":
+      case "safe":
         return "bg-cyber-success/20 text-cyber-success"
       case "suspicious":
         return "bg-cyber-warning/20 text-cyber-warning"
