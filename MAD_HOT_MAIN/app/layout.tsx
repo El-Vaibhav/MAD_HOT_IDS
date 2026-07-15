@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
-import { AuthProvider } from '@/context/AuthContext'   
+import { AuthProvider } from '@/context/AuthContext'
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -37,10 +38,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/*ADD AUTH PROVIDER HERE */}
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <GoogleOAuthProvider
+            clientId={process.env.GOOGLE_CLIENT_ID!}
+          >
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </GoogleOAuthProvider>
         </ThemeProvider>
 
         <Analytics />

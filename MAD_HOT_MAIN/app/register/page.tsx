@@ -1,5 +1,7 @@
 "use client"
-
+import { GoogleLogin } from "@react-oauth/google";
+import api from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -10,11 +12,13 @@ import { ENDPOINTS } from "@/lib/config"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { login } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
 
   const handleRegister = async () => {
     setLoading(true)
@@ -50,7 +54,7 @@ export default function RegisterPage() {
       <NetworkAnimation />
 
       <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-        
+
         {/* LEFT SECTION */}
         <section className="hidden lg:block">
           <Link href="/" className="mb-10 inline-flex items-center gap-3">
@@ -74,7 +78,7 @@ export default function RegisterPage() {
 
         {/* RIGHT SECTION (FORM) */}
         <section className="mx-auto w-full max-w-md rounded-2xl border border-primary/30 bg-background/90 p-6 shadow-2xl shadow-primary/10 backdrop-blur-xl sm:p-8">
-          
+
           <div className="mb-7 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20 text-primary">
               <UserPlus className="h-8 w-8" />
@@ -114,6 +118,37 @@ export default function RegisterPage() {
               <UserPlus className="h-4 w-4" />
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
+            <div className="flex justify-center">
+              <GoogleLogin
+                theme="filled_black"
+                shape="pill"
+                text="signup_with"
+                onSuccess={async (credentialResponse) => {
+                  try {
+                    const res = await api.post(
+                      ENDPOINTS.googleRegister,
+                      {
+                        credential: credentialResponse.credential,
+                      }
+                    );
+
+                    login(res.data.access_token);
+
+                    router.push("/");
+                  } catch (err: any) {
+                    console.error(err);
+
+                    setError(
+                      err?.response?.data?.detail ||
+                      "Google registration failed"
+                    );
+                  }
+                }}
+                onError={() => {
+                  setError("Google Sign-Up failed");
+                }}
+              />
+            </div>
           </div>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

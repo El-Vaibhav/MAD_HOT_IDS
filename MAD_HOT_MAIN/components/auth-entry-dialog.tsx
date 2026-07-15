@@ -1,6 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { GoogleLogin } from "@react-oauth/google"
+import { api } from "@/lib/api"
 import Link from "next/link"
 import { Activity, ArrowRight, Shield, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,6 +21,7 @@ const GUEST_KEY = "mad-hot-guest-mode"
 
 export function AuthEntryDialog() {
   const { user, login } = useAuth()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -144,6 +148,47 @@ export function AuthEntryDialog() {
                 <UserRound className="h-4 w-4" />
                 {loading ? "Signing in..." : "Login"}
               </Button>
+              <div className="flex justify-center py-1">
+                <GoogleLogin
+                  theme="filled_black"
+                  shape="pill"
+                  text="signin_with"
+                  width="320"
+                  onSuccess={async (credentialResponse) => {
+                    try {
+                      const res = await api.post(
+                        ENDPOINTS.googleLogin,
+                        {
+                          credential: credentialResponse.credential,
+                        }
+                      )
+
+                      localStorage.removeItem(GUEST_KEY)
+
+                      login(res.data.access_token)
+
+                      setOpen(false)
+
+                      router.refresh()
+                    } catch (err: any) {
+                      console.error(err)
+
+                      const detail = err?.response?.data?.detail
+
+                      if (typeof detail === "string") {
+                        setError(detail)
+                      } else if (Array.isArray(detail)) {
+                        setError(detail[0]?.msg || "Google login failed")
+                      } else {
+                        setError("Google login failed")
+                      }
+                    }
+                  }}
+                  onError={() => {
+                    setError("Google Sign-In failed")
+                  }}
+                />
+              </div>
 
               <Button onClick={continueAsGuest} variant="outline" className="h-11 w-full gap-2">
                 Continue as Guest

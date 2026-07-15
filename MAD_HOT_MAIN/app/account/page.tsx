@@ -176,7 +176,7 @@ return (
 <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
 {[
-{ label: "Total Analyses", value: stats?.total_analyses ?? 0, icon: Activity },
+{ label: "Total Packets Analyzed", value: stats?.total_analyses ?? 0, icon: Activity },
 { label: "Attacks Detected", value: stats?.attacks_detected ?? 0, icon: AlertTriangle },
 { label: "Safe Scans", value: stats?.safe_scans ?? 0, icon: CheckCircle2 },
 { label: "Reports Generated", value: stats?.reports_generated ?? 0, icon: FileText },

@@ -27,4 +27,6 @@ export const ENDPOINTS = {
   updateProfile: `${API_BASE_URL}/update-profile`,
   register: `${API_BASE_URL}/auth/register`,
   login: `${API_BASE_URL}/auth/login`,
+  googleLogin: `${API_BASE_URL}/auth/google-login`,
+  googleRegister: `${API_BASE_URL}/auth/google-register`
 }

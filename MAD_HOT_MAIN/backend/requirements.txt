@@ -15,3 +15,5 @@ python-multipart
 kafka-python
 bcrypt
 python-jose[cryptography]
+google-auth
+google-auth-oauthlib
