@@ -74,7 +74,7 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5">
+          <div className="ml-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5">
             <Shield className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-primary">Research-Backed AI Security</span>
           </div>
