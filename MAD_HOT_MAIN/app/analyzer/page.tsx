@@ -490,7 +490,7 @@ export default function AnalyzerPage() {
                     Click the button below to start capturing and analyzing your network traffic
                   </p>
                 </div>
-                <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4 text-sm text-yellow-300">
+                <div className="rounded-lg border border-gray-400/40 dark:border-yellow-500/40 bg-gray-100 dark:bg-yellow-500/10 p-4 text-sm text-black dark:text-yellow-300">
 
                   <p className="font-semibold mb-2">⚠ Live Detection Requires Local Sensor</p>
 

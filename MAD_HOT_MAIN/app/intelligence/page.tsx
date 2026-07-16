@@ -158,7 +158,7 @@ export default function IntelligencePage() {
           </p>
 
           {!user && (
-            <p className="mt-3 text-xs text-yellow-400">
+            <p className="mt-3 text-xs text-black dark:text-yellow-400">
               Viewing legacy shared intelligence. Login for user-specific threat data.
             </p>
           )}
