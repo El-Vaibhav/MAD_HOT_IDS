@@ -1043,28 +1043,22 @@ def update_profile(
     return {"status": "success"}
 
 @app.get("/get-profile")
-def get_profile(
-    user: dict = Depends(get_current_user_optional)
-):
+def get_profile(user: dict = Depends(get_current_user_optional)):
 
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    profile = db["profile"].find_one(
-        {"email": user["email"]}
-    )
-
-    if not profile:
-        return {
-            "name": user["email"].split("@")[0],
-            "email": user["email"]
-        }
+    profile = db["profile"].find_one({"email": user["email"]})
+    db_user = users_collection.find_one({"email": user["email"]})
 
     return {
-        "name": profile.get("name", user["email"].split("@")[0]),
+        "name": (
+            profile.get("name")
+            if profile and profile.get("name")
+            else db_user.get("name", "")
+        ),
         "email": user["email"]
     }
-
 # ---------------------------------------------------
 # GET RECENT PACKETS FROM DATABASE
 # ---------------------------------------------------

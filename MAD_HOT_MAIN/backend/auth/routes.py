@@ -41,6 +41,7 @@ def register(user: UserCreate):
         raise HTTPException(status_code=400, detail="User already exists")
 
     users_collection.insert_one({
+        "name": user.name,
         "email": user.email,
         "password": hash_password(user.password),
         "legacy_access": False,
@@ -117,6 +118,7 @@ def google_login(data: GoogleLogin):
         {"email": email},
         {
             "$set": {
+                "name": google_user.get("name"),
                 "google_id": google_user.get("sub"),
                 "provider": "google",
                 "profile_picture": google_user.get("picture"),
@@ -158,6 +160,7 @@ def google_register(data: GoogleLogin):
 
     # Create new user
     users_collection.insert_one({
+        "name": google_user.get("name"),
         "email": email,
         "password": None,
         "google_id": google_user.get("sub"),
