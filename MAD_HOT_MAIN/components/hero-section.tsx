@@ -4,8 +4,10 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { NetworkAnimation } from "@/components/network-animation"
 import { Activity, LayoutDashboard, BookOpen, ArrowRight, Shield } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 
 export function HeroSection() {
+  const { user } = useAuth()
   return (
     <section className="relative min-h-[92svh] overflow-hidden pt-16 sm:min-h-screen">
       {/* Background */}
@@ -17,13 +19,18 @@ export function HeroSection() {
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col items-center justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5">
           <Shield className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-primary">Research-Backed AI Security</span>
+          <span className="text-sm font-medium text-primary">
+            Research-Backed AI Security
+          </span>
         </div>
 
-        <h1 className="max-w-4xl text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          AI-Powered Intrusion Detection{" "}
-          <span className="text-primary text-glow-cyan">for Your Internet</span>
-        </h1>
+        <h2 className="max-w-4xl text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+          AI-Powered Intrusion Detection
+          <br />
+          <span className="text-primary text-glow-cyan">
+            for {user ? `${user.name}'s` : "Your"} Internet
+          </span>
+        </h2>
 
         <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground sm:text-xl">
           Powered by the{" "}
